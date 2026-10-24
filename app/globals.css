@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --leaf: #1f4d3a;
+  --leaf-deep: #12382a;
+  --mint: #f4faf5;
+  --cream: #fbfaf5;
+  --line: #e2ebe4;
+  --ink: #1b2b24;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  zoom: 0.9;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #d8ead9;
+  color: #12382a;
+}
+
+:focus-visible {
+  outline: 2px solid #2a5941;
+  outline-offset: 3px;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+@layer components {
+  .container-shell {
+    @apply mx-auto w-full max-w-shell px-4 sm:px-6 lg:px-8;
+  }
+  .display-title {
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 40, "WONK" 1;
+    letter-spacing: -0.025em;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-forest-600;
+  }
+  .link-underline {
+    @apply underline decoration-forest-300 decoration-1 underline-offset-4 transition hover:decoration-forest-700;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-white shadow-card;
+  }
+  .input-base {
+    @apply h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink shadow-sm outline-none transition placeholder:text-muted/70 focus:border-forest-400 focus:ring-4 focus:ring-forest-100 disabled:cursor-not-allowed disabled:bg-forest-50/60;
+  }
+  .label-base {
+    @apply mb-1.5 block text-[13px] font-medium text-forest-900;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold;
+  }
+  .table-base {
+    @apply w-full min-w-[640px] text-left text-sm;
+  }
+  .table-base thead th {
+    @apply whitespace-nowrap border-b border-line bg-leaf-mint/70 px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted;
+  }
+  .table-base tbody td {
+    @apply border-b border-line/80 px-4 py-3.5 align-middle;
+  }
+  .table-base tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .table-base tbody tr {
+    @apply transition hover:bg-leaf-mint/50;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bg-grain {
+    background-image: radial-gradient(rgba(18, 56, 42, 0.055) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .mask-fade-r {
+    mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles for invoices/labels */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}

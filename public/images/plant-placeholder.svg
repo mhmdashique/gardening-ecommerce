@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="A leafy plant in a terracotta pot">
+  <rect width="800" height="800" fill="#f4faf5"/>
+  <circle cx="400" cy="360" r="250" fill="#e4f0e7"/>
+  <g fill="none" stroke="#1f4d3a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M400 470V280"/>
+    <path d="M400 360c-70-10-120-60-128-132 78 4 128 52 128 132z" fill="#3f7d5e" stroke="#1f4d3a"/>
+    <path d="M400 330c62-8 110-52 120-118-72 2-120 44-120 118z" fill="#5c9a74" stroke="#1f4d3a"/>
+    <path d="M400 415c-54-4-98-38-112-94 66-2 110 34 112 94z" fill="#2f6b4f" stroke="#1f4d3a"/>
+    <path d="M330 470h140l-18 150H348z" fill="#c97b5a" stroke="#1f4d3a"/>
+    <path d="M318 470h164" stroke="#1f4d3a"/>
+  </g>
+  <text x="400" y="700" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#1f4d3a">Leaf &amp; Pot</text>
+  <text x="400" y="740" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing="4" fill="#66786d">GREEN HOME. HAPPY YOU.</text>
+</svg>
