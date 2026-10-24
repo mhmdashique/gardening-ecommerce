@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, IndianRupee, Repeat, Search, ShieldCheck, Users } from "lucide-react";
+import { Award, IndianRupee, Repeat, Search, Users } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminCustomers, getAllOrders } from "@/lib/catalog";
 import { CustomerTableWithDrawer } from "@/components/customer-table";
-import { buttonClasses } from "@/components/ui";
 import { formatINR } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Customer Directory & Patron Accounts | Admin", robots: { index: false, follow: false } };

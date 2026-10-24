@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { ArrowRight, Eye, EyeOff, Loader2, MapPin, Navigation } from "lucide-react";
 import {
@@ -100,6 +101,15 @@ export function GoogleButton() {
 
 export function LoginForm({ next, demoMode }: { next?: string; demoMode: boolean }) {
   const [state, formAction, pending] = useActionState(loginAction, initial);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state.success) {
+      toast(state.success, "success");
+      router.push(state.redirectTo || "/");
+    }
+  }, [state.success, state.redirectTo, toast, router]);
 
   return (
     <div className="space-y-5">

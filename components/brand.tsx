@@ -35,11 +35,12 @@ export function Brand({
     <Link href={href} className={cn("group inline-flex items-center gap-2.5", className)} aria-label="Leaf & Pot home">
       <span
         className={cn(
-          "grid shrink-0 place-items-center rounded-xl",
+          "relative grid shrink-0 place-items-center rounded-full",
           theme === "dark" ? "bg-forest-800 text-white" : "bg-white/10 text-white",
           size === "sm" ? "h-9 w-9" : size === "md" ? "h-10 w-10" : "h-12 w-12",
         )}
       >
+        <span className="absolute inset-0 rounded-full border border-white/20 animate-rotate" />
         <LeafMark className={size === "sm" ? "h-5 w-5" : size === "md" ? "h-6 w-6" : "h-7 w-7"} />
       </span>
       <span className="flex flex-col leading-none">

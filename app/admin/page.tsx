@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
-  ArrowUpRight,
   Boxes,
   CheckCircle2,
   Clock,
@@ -24,7 +23,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { getAdminProducts, getAdminReturns, getAdminStats, getAllOrders } from "@/lib/catalog";
 import { SafeImage } from "@/components/safe-image";
-import { PaymentStatusChip, StatusChip, buttonClasses } from "@/components/ui";
+import { PaymentStatusChip, StatusChip } from "@/components/ui";
 import { minPrice, totalStock } from "@/lib/product-utils";
 import { formatDate, formatINR } from "@/lib/utils";
 

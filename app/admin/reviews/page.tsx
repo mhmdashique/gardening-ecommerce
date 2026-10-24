@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle2, Clock, MessageSquare, Sparkles, Star, ThumbsUp } from "lucide-react";
+import { CheckCircle2, Clock, MessageSquare, Star } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminReviews } from "@/lib/catalog";
 import { ReviewActions } from "@/components/admin-forms";
-import { Badge, EmptyState, buttonClasses } from "@/components/ui";
+import { EmptyState } from "@/components/ui";
 import { Stars } from "@/components/stars";
 import { cn, formatDate } from "@/lib/utils";
 

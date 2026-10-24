@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CheckCircle2, Eye, Image as ImageIcon, LayoutGrid, Sparkles } from "lucide-react";
+import { CheckCircle2, Image as ImageIcon, LayoutGrid, Sparkles } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAllBanners } from "@/lib/catalog";
 import { BannerManager } from "@/components/admin-forms";

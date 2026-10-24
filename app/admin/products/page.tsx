@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertCircle, Boxes, CheckCircle2, Eye, Filter, Plus, Search, Sparkles } from "lucide-react";
+import { Boxes, Filter, Plus, Search } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminProducts, getCategories } from "@/lib/catalog";
 import { ProductRowActions } from "@/components/admin-forms";
 import { SafeImage } from "@/components/safe-image";
-import { Badge, buttonClasses } from "@/components/ui";
 import { minPrice, totalStock } from "@/lib/product-utils";
 import { formatINR } from "@/lib/utils";
 

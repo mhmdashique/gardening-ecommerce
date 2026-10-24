@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { CheckCircle2, CreditCard, Gift, Info, ShieldCheck, Sliders, Truck } from "lucide-react";
+import { Info, Truck } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getDeliveryZones, getSettings } from "@/lib/catalog";
 import { SettingsForm, ZoneManager } from "@/components/admin-forms";
-import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Store Configuration & Settings | Admin", robots: { index: false, follow: false } };
 

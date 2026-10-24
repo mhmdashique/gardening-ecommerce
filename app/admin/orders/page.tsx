@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, Filter, Package, Search, ShoppingBag, Truck, User } from "lucide-react";
+import { Download, Filter, Package, Search } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAllOrders } from "@/lib/catalog";
-import { StatusChip, buttonClasses } from "@/components/ui";
+import { StatusChip } from "@/components/ui";
 import { cn, formatDate, formatINR, paymentStatusLabel } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Order Management & Fulfillment | Admin", robots: { index: false, follow: false } };

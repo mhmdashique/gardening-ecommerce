@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CheckCircle2, Flame, Percent, Sparkles, Tag, Ticket } from "lucide-react";
+import { CheckCircle2, Flame, Sparkles, Ticket } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getCategories, getCoupons } from "@/lib/catalog";
 import { CouponManager } from "@/components/admin-forms";

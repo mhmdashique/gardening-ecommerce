@@ -20,6 +20,7 @@ import {
 export interface AuthState {
   error?: string;
   success?: string;
+  redirectTo?: string;
   fieldErrors?: Record<string, string>;
 }
 
@@ -48,7 +49,6 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
-    next: formData.get("next") || undefined,
   });
   if (!parsed.success) return zodError(parsed.error);
 
@@ -57,8 +57,6 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   if (!limit.allowed) {
     return { error: `Too many attempts. Try again in ${limit.retryAfterSeconds}s.` };
   }
-
-  const next = safeNextPath(parsed.data.next, "");
 
   if (!isSupabaseConfigured()) {
     const db = getDb();
@@ -72,7 +70,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     }
     if (user.is_blocked) return { error: "This account has been blocked. Please contact support." };
     await setDemoSession(user.id, user.email, user.role);
-    redirect(next || (user.role === "admin" ? "/admin" : "/account"));
+    return { success: "Login successful!", redirectTo: user.role === "admin" ? "/admin" : "/" };
   }
 
   const supabase = await createServerSupabase();
@@ -91,7 +89,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     await supabase.auth.signOut();
     return { error: "This account has been blocked. Please contact support." };
   }
-  redirect(next || (profile?.role === "admin" ? "/admin" : "/account"));
+  return { success: "Login successful!", redirectTo: profile?.role === "admin" ? "/admin" : "/" };
 }
 
 export async function registerAction(_prev: AuthState, formData: FormData): Promise<AuthState> {

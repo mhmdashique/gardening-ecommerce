@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, Clock, RotateCcw, ShieldAlert, Sparkles, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, RotateCcw, Sparkles } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminReturns, getSettings } from "@/lib/catalog";
 import { ReturnReviewForm } from "@/components/admin-forms";
@@ -14,7 +14,6 @@ export default async function AdminReturnsPage() {
   const [returns, settings] = await Promise.all([getAdminReturns(), getSettings()]);
   const open = returns.filter((request) => request.status === "requested");
   const approved = returns.filter((request) => request.status === "approved" || request.status === "refunded");
-  const rejected = returns.filter((request) => request.status === "rejected");
 
   return (
     <div className="space-y-6 pb-12">

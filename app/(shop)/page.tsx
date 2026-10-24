@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  AlertCircle,
   ArrowRight,
   Boxes,
   Building2,
-  ChevronRight,
   Headphones,
   Home,
   Leaf,
@@ -21,18 +19,15 @@ import {
   getAllProducts,
   getBanners,
   getBestSellers,
-  getCategories,
-  getRecentlyViewed,
   getSettings,
   getWishlistProducts,
 } from "@/lib/catalog";
-import { HeroCarousel, HorizontalRow } from "@/components/hero-carousel";
-import { WatchVideoButton } from "@/components/hero-video";
 import { ProductCard } from "@/components/product-card";
+import { WatchVideoButton } from "@/components/hero-video";
 import { SafeImage } from "@/components/safe-image";
 import { SectionHeading, buttonClasses } from "@/components/ui";
 import { formatINR } from "@/lib/utils";
-import type { Category, Product, SiteSettings } from "@/lib/types";
+import type { Product, SiteSettings } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: { absolute: "Leaf & Pot | Live Plants for Landscaping, Gardening, Homes & Offices" },
@@ -474,200 +469,3 @@ function LandingHome({
   );
 }
 
-function RightRail({
-  specialOffer,
-  categories,
-  recentlyViewed,
-}: {
-  specialOffer: import("@/lib/types").Banner | null;
-  categories: Category[];
-  recentlyViewed: Product[];
-}) {
-  return (
-    <aside className="space-y-4 lg:sticky lg:top-[104px] lg:self-start" aria-label="Store highlights">
-      {specialOffer && (
-        <div className="relative overflow-hidden rounded-2xl bg-forest-900 p-5 text-white shadow-card">
-          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/5" aria-hidden />
-          <div className="absolute -bottom-10 -left-6 h-28 w-28 rounded-full bg-amber/10" aria-hidden />
-          <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-forest-200">
-            {specialOffer.eyebrow ?? "Special offer"}
-          </p>
-          <h2 className="display-title mt-2 max-w-[16ch] text-[21px] font-semibold leading-tight">{specialOffer.title}</h2>
-          {specialOffer.subtitle && <p className="mt-2 text-[11.5px] leading-relaxed text-white/60">{specialOffer.subtitle}</p>}
-          <Link
-            href={specialOffer.cta_url ?? "/shop"}
-            className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-3 text-[11px] font-semibold text-forest-900 hover:bg-forest-50"
-          >
-            {specialOffer.cta_label ?? "Shop the offer"} <ChevronRight className="h-3 w-3" />
-          </Link>
-        </div>
-      )}
-
-      <div className="rounded-2xl border border-line bg-white p-3 shadow-sm">
-        <div className="mb-1 flex items-center justify-between px-1.5 py-1.5">
-          <h2 className="text-[12.5px] font-semibold text-forest-950">Categories</h2>
-          <Link href="/shop" className="text-[10px] font-semibold text-forest-600 hover:underline">
-            All
-          </Link>
-        </div>
-        <ul>
-          {categories.slice(0, 6).map((category) => (
-            <li key={category.id}>
-              <Link
-                href={category.slug === "best-sellers" ? "/shop?sort=rating" : `/category/${category.slug}`}
-                className="flex items-center gap-2.5 rounded-xl px-1.5 py-2 transition hover:bg-leaf-mint"
-              >
-                <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-leaf-mint">
-                  <SafeImage
-                    src={category.image_url ?? "/images/plant-placeholder.svg"}
-                    alt=""
-                    sizes="32px"
-                    className="object-cover"
-                  />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-forest-900">{category.name}</span>
-                <span className="text-[10px] text-muted">{category.product_count ?? 0}</span>
-                <ChevronRight className="h-3 w-3 text-muted" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="rounded-2xl border border-line bg-white p-3 shadow-sm">
-        <div className="mb-1 flex items-center gap-1.5 px-1.5 py-1.5">
-          <h2 className="text-[12.5px] font-semibold text-forest-950">Recently Viewed</h2>
-          <Sparkles className="h-3 w-3 text-amber" />
-        </div>
-        {recentlyViewed.length === 0 ? (
-          <p className="px-1.5 pb-2 text-[11px] leading-relaxed text-muted">Products you view will appear here.</p>
-        ) : (
-          <ul>
-            {recentlyViewed.map((product) => {
-              const variant = product.variants.find((v) => v.is_active);
-              return (
-                <li key={product.id}>
-                  <Link href={`/product/${product.slug}`} className="flex items-center gap-2.5 rounded-xl px-1.5 py-2 transition hover:bg-leaf-mint">
-                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-leaf-mint">
-                      <SafeImage src={product.images[0] ?? "/images/plant-placeholder.svg"} alt="" sizes="40px" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[11.5px] font-medium text-forest-900">{product.name}</span>
-                      <span className="block text-[10.5px] text-muted">{formatINR(variant?.price ?? 0)}</span>
-                    </span>
-                    <ChevronRight className="h-3 w-3 text-muted" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    </aside>
-  );
-}
-
-function StoreHome({
-  heroBanners,
-  specialOffer,
-  categories,
-  allProducts,
-  bestSellers,
-  recentlyViewed,
-  wishlistIds,
-  loggedIn,
-}: {
-  heroBanners: import("@/lib/types").Banner[];
-  specialOffer: import("@/lib/types").Banner | null;
-  categories: Category[];
-  allProducts: Product[];
-  bestSellers: Product[];
-  recentlyViewed: Product[];
-  wishlistIds: Set<string>;
-  loggedIn: boolean;
-}) {
-  return (
-    <div className="space-y-6">
-      <HeroCarousel banners={heroBanners} />
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_286px]">
-        <div className="min-w-0 space-y-8">
-          <section>
-            <div className="mb-4 flex items-end justify-between gap-3">
-              <div>
-                <p className="eyebrow mb-1">Our living collection</p>
-                <h2 className="font-display text-[23px] font-semibold text-forest-950 sm:text-[27px]">All Plants</h2>
-              </div>
-              <Link href="/shop" className="text-[11.5px] font-semibold text-forest-700 underline decoration-forest-300 underline-offset-4 hover:decoration-forest-700">
-                View catalog
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-              {allProducts.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  wishlisted={wishlistIds.has(product.id)}
-                  loggedIn={loggedIn}
-                  priority={index < 2}
-                />
-              ))}
-            </div>
-
-            <div className="mt-8 flex justify-center">
-              <Link
-                href="/shop"
-                className={buttonClasses({
-                  size: "lg",
-                  className: "h-11 rounded-xl px-8 text-sm font-semibold shadow-md shadow-forest-900/10 hover:shadow-lg transition-all",
-                })}
-              >
-                Show More Plants <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-
-          <AboutCompanySection />
-
-          <section className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
-            <HorizontalRow title="Best Selling" href="/shop?sort=rating">
-              {bestSellers.map((product) => (
-                <div key={product.id} className="w-[172px] shrink-0 snap-start sm:w-[190px]">
-                  <ProductCard
-                    product={product}
-                    wishlisted={wishlistIds.has(product.id)}
-                    loggedIn={loggedIn}
-                    compact
-                  />
-                  <Link
-                    href={`/product/${product.slug}`}
-                    className="mt-2 flex h-8 items-center justify-center rounded-lg bg-forest-800 text-[11px] font-semibold text-white hover:bg-forest-900"
-                  >
-                    View plant
-                  </Link>
-                </div>
-              ))}
-            </HorizontalRow>
-          </section>
-
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-leaf-mint p-4 sm:p-5">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-forest-700 shadow-sm">
-                <Headphones className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[13px] font-semibold text-forest-950">Not sure which plant fits your light?</p>
-                <p className="text-[11.5px] text-muted">Send us a photo of your space — we&apos;ll help you choose.</p>
-              </div>
-            </div>
-            <Link href="/contact" className={buttonClasses({ variant: "secondary", size: "sm", className: "h-9" })}>
-              Ask a plant doctor
-            </Link>
-          </div>
-        </div>
-
-        <RightRail specialOffer={specialOffer} categories={categories} recentlyViewed={recentlyViewed} />
-      </div>
-    </div>
-  );
-}

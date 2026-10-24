@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FolderTree, Layers, Sparkles } from "lucide-react";
+import {} from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { getCategories } from "@/lib/catalog";
 import { CategoryManager } from "@/components/admin-forms";

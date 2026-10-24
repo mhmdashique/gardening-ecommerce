@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowRight,
+  Bell,
   ChevronRight,
+  Home,
   Heart,
   MapPin,
   Package,
@@ -102,6 +104,12 @@ export default async function AccountDashboardPage() {
           )}
         </div>
         <div className="relative mt-5 flex flex-wrap gap-2">
+          <Link href="/" className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 text-[11.5px] font-semibold text-white transition hover:bg-white/20">
+            <Home className="h-4 w-4" /> Home
+          </Link>
+          <Link href="/account/notifications" className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-white/20 px-3 text-[11.5px] font-semibold text-white transition hover:bg-white/20">
+            <Bell className="h-4 w-4" /> Notifications
+          </Link>
           <Link href="/shop" className={buttonClasses({ variant: "amber", size: "sm" })}>
             Shop plants <ArrowRight className="h-3.5 w-3.5" />
           </Link>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Heart,
+  Home,
   Leaf,
   Menu,
   Search,
@@ -197,6 +198,11 @@ export function SiteHeader({
               "flex shrink-0 items-center gap-0.5",
               !scrolled && "",
             )}>
+              {/* Home icon button */}
+              <IconButton label="Home" href="/">
+                <Home className="h-[17px] w-[17px]" />
+              </IconButton>
+
               {/* Search icon button */}
               <button
                 type="button"
@@ -276,6 +282,9 @@ export function SiteHeader({
 
             {/* Right icons */}
             <div className="flex items-center gap-1">
+              <IconButton label="Home" href="/">
+                <Home className="h-[17px] w-[17px]" />
+              </IconButton>
               <IconButton label="Search" onClick={() => setSearchOpen(true)}>
                 <Search className="h-[17px] w-[17px]" />
               </IconButton>
