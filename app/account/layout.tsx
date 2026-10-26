@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { getCustomerNotifications, getSettings } from "@/lib/catalog";
 import { CartProvider } from "@/components/cart-provider";
+import { HashScroll } from "@/components/hash-scroll";
 import { AccountShell } from "@/components/shells";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   return (
     <CartProvider settings={settings} loggedIn>
       <AccountShell user={user} notifications={notifications} unread={unread} loyaltyEnabled={settings.loyalty_enabled}>
+        <HashScroll />
         {children}
       </AccountShell>
     </CartProvider>

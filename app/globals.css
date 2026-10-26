@@ -23,6 +23,13 @@ html {
   zoom: 0.9;
 }
 
+/* Cashfree injects a fixed full-screen iframe. The global 0.9 zoom scales it
+ * down, leaving the underlying page and mobile dock visible. Reset the zoom
+ * only while the hosted checkout is open. */
+html.cashfree-checkout-open {
+  zoom: 1;
+}
+
 body {
   background: var(--cream);
   color: var(--ink);

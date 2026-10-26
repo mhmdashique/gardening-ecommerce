@@ -10,6 +10,7 @@ import {
   Navigation,
   Pencil,
   Plus,
+  ShieldAlert,
   Star,
   Trash2,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import {
   type FormState,
 } from "@/lib/actions/account";
 import { changePasswordAction } from "@/lib/actions/account";
+import { deleteAccountAction } from "@/lib/actions/account";
 import { Modal } from "@/components/interactive";
 import { useToast } from "@/components/toast";
 import { Badge, Button, Checkbox, Field, Input, Select, Textarea } from "@/components/ui";
@@ -74,7 +76,7 @@ function SubmitButton({
 
 /* -------------------------------- Profile --------------------------------- */
 
-export function ProfileForm({ fullName, phone }: { fullName: string; phone: string | null }) {
+export function ProfileForm({ fullName, phone, email }: { fullName: string; phone: string | null; email?: string }) {
   const [state, action, pending] = useActionState(updateProfileAction, initial);
   return (
     <form action={action} className="space-y-4">
@@ -93,6 +95,22 @@ export function ProfileForm({ fullName, phone }: { fullName: string; phone: stri
           />
         </Field>
       </div>
+      {email && (
+        <Field
+          label="Email address"
+          htmlFor="profile-email"
+          hint="Your email is used to sign in and cannot be changed here. Contact support if you need to update it."
+        >
+          <Input
+            id="profile-email"
+            value={email}
+            readOnly
+            disabled
+            autoComplete="email"
+            className="cursor-not-allowed bg-forest-50/70 text-muted"
+          />
+        </Field>
+      )}
       <SubmitButton pending={pending}>Save changes</SubmitButton>
     </form>
   );
@@ -143,6 +161,89 @@ export function PasswordForm() {
       </div>
       <SubmitButton pending={pending}>Update password</SubmitButton>
     </form>
+  );
+}
+
+/* ------------------------------ Delete account ------------------------------ */
+
+/**
+ * Danger-zone trigger + confirm modal for deleting the signed-in account.
+ * The server action signs the user out and cascades away all personal data,
+ * then redirects home. The destructive button is only enabled once the user
+ * types DELETE into the confirmation field.
+ */
+export function DeleteAccountForm() {
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  const submit = () => {
+    startTransition(async () => {
+      await deleteAccountAction();
+    });
+  };
+
+  const confirmed = confirmText.trim().toUpperCase() === "DELETE";
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setConfirmText("");
+          setOpen(true);
+        }}
+        disabled={pending}
+        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-danger/30 bg-danger-soft px-3 text-[11.5px] font-semibold text-danger-ink transition hover:border-danger/50 hover:bg-danger/10 disabled:opacity-60"
+      >
+        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        Delete my account
+      </button>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Delete your account?"
+        description="This permanently erases everything tied to your account and cannot be undone."
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-danger/20 bg-danger-soft px-3.5 py-3">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-danger-ink">
+              <ShieldAlert className="h-3.5 w-3.5" /> What disappears
+            </p>
+            <ul className="mt-2 space-y-1 text-[11.5px] leading-relaxed text-danger-ink/90">
+              <li>• All orders, invoices and delivery history</li>
+              <li>• Saved addresses and your wishlist</li>
+              <li>• Reviews and reward points</li>
+              <li>• Sign-in access for this email</li>
+            </ul>
+          </div>
+          <Field label="Type DELETE to confirm" htmlFor="delete-confirm" hint="This step keeps typos from erasing your garden.">
+            <Input
+              id="delete-confirm"
+              value={confirmText}
+              onChange={(event) => setConfirmText(event.target.value)}
+              placeholder="DELETE"
+              autoComplete="off"
+            />
+          </Field>
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!confirmed || pending}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-danger px-4 text-[12.5px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              Delete forever
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
@@ -639,12 +740,12 @@ export function ContactForm() {
 
   if (sent && state.success) {
     return (
-      <div className="card p-6 text-center">
-        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-success-soft text-success-ink">
-          <Check className="h-6 w-6" />
+      <div className="rounded-3xl border border-forest-100/80 bg-white p-8 text-center">
+        <span className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-forest-100 bg-leaf-mint text-forest-700">
+          <Check className="h-5 w-5" strokeWidth={1.8} />
         </span>
-        <h2 className="mt-4 font-display text-xl font-semibold text-forest-950">Message received</h2>
-        <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-muted">{state.success}</p>
+        <h2 className="mt-5 font-display text-xl font-semibold text-forest-950">Message received</h2>
+        <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-forest-700/80">{state.success}</p>
         <button
           type="button"
           onClick={() => setSent(false)}
@@ -657,15 +758,15 @@ export function ContactForm() {
   }
 
   return (
-    <form action={action} className="card p-5 space-y-4">
-      <div>
-        <h2 className="font-display text-[18px] font-semibold text-forest-950">Send us a message</h2>
-        <p className="mt-1 text-[12px] text-muted">Leave your details and a plant specialist will get back to you.</p>
+    <form action={action} className="space-y-6 rounded-3xl border border-forest-100/80 bg-white p-6 sm:p-8">
+      <div className="border-b border-forest-100/70 pb-5">
+        <h2 className="font-display text-[19px] font-semibold text-forest-950">Send a message</h2>
+        <p className="mt-1 text-[12px] text-forest-700/80">Share a few details and a plant specialist will get back to you.</p>
       </div>
 
       <Alert state={state} />
 
-      <div className="grid gap-3.5 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Your name" htmlFor="contact-name" error={state.fieldErrors?.name} required>
           <Input id="contact-name" name="name" placeholder="Priya Sharma" autoComplete="name" required />
         </Field>
@@ -695,7 +796,8 @@ export function ContactForm() {
         />
       </Field>
 
-      <div className="flex justify-end pt-1">
+      <div className="flex flex-col-reverse gap-4 border-t border-forest-100/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[10.5px] leading-relaxed text-forest-700/80">We only use your details to reply to this message.</p>
         <SubmitButton pending={pending}>Send message</SubmitButton>
       </div>
     </form>

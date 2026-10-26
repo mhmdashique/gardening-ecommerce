@@ -7,13 +7,14 @@ import { useCart } from "@/components/cart-provider";
 import { cn, formatINR } from "@/lib/utils";
 
 export function MobileCartBar() {
-  const { count, totals } = useCart();
+  const { count, totals, loggedIn } = useCart();
   const pathname = usePathname();
+  if (!loggedIn) return null;
   if (count === 0) return null;
   if (pathname.startsWith("/checkout") || pathname === "/cart") return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-forest-800/10 bg-forest-900 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 text-white shadow-lift lg:hidden">
+    <div className="fixed inset-x-0 bottom-[calc(112px+env(safe-area-inset-bottom))] z-[70] border-t border-forest-800/10 bg-forest-900 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 text-white shadow-lift lg:hidden">
       <div className="flex items-center gap-3">
         <Link href="/cart" className="flex flex-1 flex-col text-left" aria-label="View cart">
           <span className="text-[10.5px] uppercase tracking-wider text-white/65">

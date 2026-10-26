@@ -130,7 +130,7 @@ export function LoginForm({ next, demoMode }: { next?: string; demoMode: boolean
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Log in <ArrowRight className="h-4 w-4" />
+          Sign in
         </Button>
       </form>
 

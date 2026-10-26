@@ -4,6 +4,7 @@ import { CartProvider } from "@/components/cart-provider";
 import { MobileCartBar } from "@/components/cart-ui";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { TabBar } from "@/components/mobile-tab-menu";
 import { HelpChat } from "@/components/help-chat";
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
@@ -19,10 +20,11 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         wishlistCount={wishlistCount}
         freeShippingThreshold={settings.free_shipping_threshold}
       />
-      <main id="main-content" className="min-h-[50vh]">
+      <main id="main-content" className="min-h-[50vh] pb-[120px] lg:pb-0">
         {children}
       </main>
       <SiteFooter />
+      <TabBar />
       <MobileCartBar />
       <HelpChat firstName={user?.full_name?.split(" ")[0]} />
     </CartProvider>

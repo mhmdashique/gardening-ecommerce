@@ -13,6 +13,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { createServerSupabaseReadOnly } from "@/lib/supabase/server";
 import { minPrice } from "@/lib/product-utils";
+import { potTypeLabel } from "@/lib/utils";
 import type {
   Address,
   Banner,
@@ -45,7 +46,7 @@ export function mapProductRow(row: Row): Product {
     product_id: String(v.product_id ?? row.id),
     sku: String(v.sku),
     size: String(v.size),
-    pot_type: String(v.pot_type),
+    pot_type: potTypeLabel(v.pot_type),
     price: Number(v.price),
     compare_at_price: v.compare_at_price === null ? null : Number(v.compare_at_price),
     stock: Number(v.stock),
@@ -95,7 +96,7 @@ export function mapOrderRow(row: Row): Order {
     sku: String(item.sku),
     image: String(item.image ?? "/images/plant-placeholder.svg"),
     size: String(item.size ?? ""),
-    pot_type: String(item.pot_type ?? ""),
+    pot_type: potTypeLabel(item.pot_type),
     price: Number(item.price),
     qty: Number(item.qty),
   }));
@@ -903,6 +904,39 @@ export async function getAdminReviews(): Promise<Review[]> {
     }));
   }
   return structuredClone(getDb().reviews);
+}
+
+export async function getReviewsForUser(userId: string): Promise<Review[]> {
+  if (isSupabaseConfigured()) {
+    const supabase = await createServerSupabaseReadOnly();
+    if (!supabase) return [];
+    const { data } = await supabase
+      .from("reviews")
+      .select("*, products(name)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    return ((data ?? []) as Row[]).map((row) => ({
+      id: String(row.id),
+      product_id: String(row.product_id),
+      product_name: String((row.products as Row | null)?.name ?? "—"),
+      user_id: String(row.user_id),
+      customer_name: String(row.customer_name ?? "Customer"),
+      order_id: (row.order_id as string | null) ?? null,
+      rating: Number(row.rating),
+      comment: String(row.comment),
+      is_approved: Boolean(row.is_approved),
+      created_at: String(row.created_at),
+    }));
+  }
+  return structuredClone(
+    getDb()
+      .reviews.filter((r) => r.user_id === userId)
+      .map((r) => ({
+        ...r,
+        product_name: r.product_name ?? getDb().products.find((p) => p.id === r.product_id)?.name,
+      }))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+  );
 }
 
 export async function getAdminReturns(): Promise<import("@/lib/types").ReturnRequest[]> {

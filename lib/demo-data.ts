@@ -161,10 +161,10 @@ const seeds: ProductSeed[] = [
     reviews: 142,
     image: DEMO_IMAGES.peaceLily,
     variants: [
-      ["Pot", '6" Nursery Pot (100% Price)', 299, 399, 30],
-      ["With Plastic Cover", "Nursery Grow Bag (80% Price)", 239, 319, 25],
-      ["Without Pot", "Bare Root / Root Ball (75% Price)", 224, 299, 20],
-      ["Cuttings", "Fresh Rooted Cutting (50% Price)", 149, 199, 35],
+      ["Pot", '6" Nursery Pot', 299, 399, 30],
+      ["With Plastic Cover", "Nursery Grow Bag", 239, 319, 25],
+      ["Without Pot", "Bare Root / Root Ball", 224, 299, 20],
+      ["Cuttings", "Fresh Rooted Cutting", 149, 199, 35],
     ],
     description:
       "Renowned for its elegant white hooded blooms and lush, deep green leaves. The Peace Lily (locally called Paathi Pull) is a NASA-certified top air purifier that visibly tells you when it needs water and bounces right back.",
@@ -189,10 +189,10 @@ const seeds: ProductSeed[] = [
     reviews: 88,
     image: DEMO_IMAGES.chineseEvergreen,
     variants: [
-      ["Pot", '6" Nursery Pot (100% Price)', 399, 499, 25],
-      ["With Plastic Cover", "Nursery Grow Bag (80% Price)", 319, 399, 20],
-      ["Without Pot", "Bare Root / Root Ball (75% Price)", 299, 374, 18],
-      ["Cuttings", "Fresh Rooted Cutting (50% Price)", 199, 249, 30],
+      ["Pot", '6" Nursery Pot', 399, 499, 25],
+      ["With Plastic Cover", "Nursery Grow Bag", 319, 399, 20],
+      ["Without Pot", "Bare Root / Root Ball", 299, 374, 18],
+      ["Cuttings", "Fresh Rooted Cutting", 199, 249, 30],
     ],
     description:
       "Striking variegated cream and green leaves with a lush, full habit. Exceptionally tolerant of low light, air-conditioning, and missed waterings, making it ideal for busy homes and offices.",
@@ -243,10 +243,10 @@ const seeds: ProductSeed[] = [
     reviews: 175,
     image: DEMO_IMAGES.luckyBamboo,
     variants: [
-      ["Pot", "Ceramic Planter Bowl (100% Price)", 299, 399, 30],
-      ["With Plastic Cover", "Protective Sleeve Wrap (80% Price)", 239, 319, 25],
-      ["Without Pot", "Bare Stalks Bundle (75% Price)", 224, 299, 20],
-      ["Cuttings", "Individual Fresh Stalks (50% Price)", 149, 199, 35],
+      ["Pot", "Ceramic Planter Bowl", 299, 399, 30],
+      ["With Plastic Cover", "Protective Sleeve Wrap", 239, 319, 25],
+      ["Without Pot", "Bare Stalks Bundle", 224, 299, 20],
+      ["Cuttings", "Individual Fresh Stalks", 149, 199, 35],
     ],
     description:
       "A revered symbol of good fortune, harmony, and prosperity in Vastu and Feng Shui. Vibrant green stalks ready to display on study desks, coffee tables, and countertops.",
@@ -271,10 +271,10 @@ const seeds: ProductSeed[] = [
     reviews: 62,
     image: DEMO_IMAGES.calatheaLutea,
     variants: [
-      ["Pot", '6" Nursery Pot (100% Price)', 549, 699, 15],
-      ["With Plastic Cover", "Nursery Grow Bag (80% Price)", 439, 559, 15],
-      ["Without Pot", "Bare Root / Root Ball (75% Price)", 412, 524, 12],
-      ["Cuttings", "Rooted Stem Cutting (50% Price)", 275, 349, 20],
+      ["Pot", '6" Nursery Pot', 549, 699, 15],
+      ["With Plastic Cover", "Nursery Grow Bag", 439, 559, 15],
+      ["Without Pot", "Bare Root / Root Ball", 412, 524, 12],
+      ["Cuttings", "Rooted Stem Cutting", 275, 349, 20],
     ],
     description:
       "Architectural, paddle-like upright leaves with silvery-white undersides that transform any room into a tropical oasis. Completely pet-safe and non-toxic.",
@@ -299,10 +299,10 @@ const seeds: ProductSeed[] = [
     reviews: 45,
     image: DEMO_IMAGES.fanPalm,
     variants: [
-      ["Pot", '7" Nursery Pot (100% Price)', 599, 749, 12],
-      ["With Plastic Cover", "Nursery Grow Bag (80% Price)", 479, 599, 14],
-      ["Without Pot", "Bare Root / Root Ball (75% Price)", 449, 562, 10],
-      ["Cuttings", "Rooted Frond Cutting (50% Price)", 299, 374, 15],
+      ["Pot", '7" Nursery Pot', 599, 749, 12],
+      ["With Plastic Cover", "Nursery Grow Bag", 479, 599, 14],
+      ["Without Pot", "Bare Root / Root Ball", 449, 562, 10],
+      ["Cuttings", "Rooted Frond Cutting", 299, 374, 15],
     ],
     description:
       "Circular pleated fronds that unfold like royal origami fans. One of the most spectacular palms in the botanical world — an instant statement for bright entryways, living rooms, and sheltered verandahs.",
@@ -327,10 +327,10 @@ const seeds: ProductSeed[] = [
     reviews: 53,
     image: DEMO_IMAGES.redCalathea,
     variants: [
-      ["Pot", '5" Nursery Pot (100% Price)', 449, 549, 18],
-      ["With Plastic Cover", "Nursery Grow Bag (80% Price)", 359, 439, 16],
-      ["Without Pot", "Bare Root / Root Ball (75% Price)", 337, 412, 14],
-      ["Cuttings", "Fresh Rooted Cutting (50% Price)", 225, 275, 25],
+      ["Pot", '5" Nursery Pot', 449, 549, 18],
+      ["With Plastic Cover", "Nursery Grow Bag", 359, 439, 16],
+      ["Without Pot", "Bare Root / Root Ball", 337, 412, 14],
+      ["Cuttings", "Fresh Rooted Cutting", 225, 275, 25],
     ],
     description:
       "Wavy, lance-shaped leaves with velvety olive green tops and breathtaking deep wine-red undersides. Naturally folds its leaves upward at night in true prayer plant fashion.",

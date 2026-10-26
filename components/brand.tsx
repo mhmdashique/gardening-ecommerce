@@ -32,7 +32,7 @@ export function Brand({
   className?: string;
 }) {
   return (
-    <Link href={href} className={cn("group inline-flex items-center gap-2.5", className)} aria-label="Leaf & Pot home">
+    <Link href={href} className={cn("group inline-flex items-center gap-2.5", className)}>
       <span
         className={cn(
           "relative grid shrink-0 place-items-center rounded-full",

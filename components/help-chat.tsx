@@ -172,7 +172,7 @@ export function HelpChat({ firstName = "there" }: { firstName?: string }) {
   };
 
   return (
-    <div className="fixed right-4 bottom-20 z-40 lg:right-6 lg:bottom-6" data-help-chat>
+    <div className="fixed right-4 bottom-32 z-40 lg:right-6 lg:bottom-6" data-help-chat>
       {open && (
         <div className="mb-3 flex h-[min(66vh,500px)] w-[min(92vw,360px)] flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-lift">
           {/* Header */}

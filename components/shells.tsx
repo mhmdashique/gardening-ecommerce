@@ -16,7 +16,6 @@ import {
   Leaf,
   LifeBuoy,
   LogOut,
-  MapPin,
   Menu,
   MessageSquare,
   Package,
@@ -31,11 +30,44 @@ import {
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { SiteHeader } from "@/components/site-header";
+import { TabBar } from "@/components/mobile-tab-menu";
+import { useToast } from "@/components/toast";
 import { UserMenu } from "@/components/user-menu";
 import { markAdminNotificationsReadAction, markNotificationsReadAction } from "@/lib/actions/account";
 import { logoutAction } from "@/lib/actions/auth";
-import { cn, timeAgo } from "@/lib/utils";
+import { cn, initials, timeAgo } from "@/lib/utils";
 import type { Category, Notification, User } from "@/lib/types";
+
+/**
+ * Shared logout control: shows a farewell toast as the server action signs
+ * the user out and navigates home. `variant="admin"` renders the dark-sidebar
+ * tile + label composition used in AdminShell.
+ */
+function LogoutSubmit({ className, variant = "icon" }: { className?: string; variant?: "icon" | "admin" }) {
+  const { toast } = useToast();
+  return (
+    <form action={logoutAction} onSubmit={() => toast("You've been logged out. See you soon! 🌱", "success")}>
+      <button
+        type="submit"
+        title={variant === "admin" ? undefined : "Log out"}
+        aria-label={variant === "admin" ? undefined : "Log out"}
+        className={className ?? "grid h-9 w-9 place-items-center rounded-xl text-rose-500 transition hover:bg-rose-50"}
+      >
+        {variant === "admin" ? (
+          <>
+            <span className="grid h-7 w-7 place-items-center rounded-lg text-rose-400/50">
+              <LogOut className="h-[15px] w-[15px]" strokeWidth={1.9} />
+            </span>
+            Log out
+          </>
+        ) : (
+          <LogOut className="h-4 w-4" strokeWidth={1.8} />
+        )}
+      </button>
+    </form>
+  );
+}
+
 
 const storeLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -165,8 +197,6 @@ export function StoreChrome({
 const accountLinks = [
   { href: "/account", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/account/orders", label: "My Orders", icon: Package },
-  { href: "/account/wishlist", label: "Wishlist", icon: Sparkles },
-  { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/profile", label: "Profile", icon: UserIcon },
   { href: "/account/settings", label: "Settings", icon: Settings },
 ];
@@ -285,71 +315,90 @@ export function AccountShell({
 }) {
   const pathname = usePathname();
   const accountCrumbs = buildAccountBreadcrumbs(pathname);
-  const links = loyaltyEnabled
-    ? [...accountLinks, { href: "/account/loyalty", label: "Loyalty", icon: Sparkles }]
-    : accountLinks;
 
   return (
     <div className="min-h-screen bg-[#f6f9f5]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[258px] flex-col bg-forest-900 text-white lg:flex">
-        <div className="px-5 pb-6 pt-6">
-          <Brand theme="light" size="sm" />
-          <p className="mt-1.5 pl-[46px] text-[9px] font-medium uppercase tracking-[0.2em] text-white/40">
-            Customer dashboard
-          </p>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-white lg:flex">
+        <div className="px-5 pb-4 pt-6">
+          <Brand size="sm" withTagline={false} />
+          <p className="mt-1.5 text-[9px] font-medium uppercase tracking-[0.22em] text-muted/80">Customer dashboard</p>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3" aria-label="Dashboard navigation">
-          {links.map((link) => {
-            const Icon = link.icon;
-            const active = link.href === "/account" ? pathname === "/account" : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition",
-                  active ? "bg-white/12 text-white shadow-sm" : "text-white/60 hover:bg-white/8 hover:text-white",
-                )}
-              >
-                <Icon className="h-[17px] w-[17px]" strokeWidth={1.8} />
-                {link.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4" aria-label="Dashboard navigation">
+          {[
+            { label: "Activity", links: accountLinks.slice(0, 2) },
+            {
+              label: "Manage",
+              links: [
+                ...(loyaltyEnabled ? [{ href: "/account/loyalty", label: "Loyalty", icon: Sparkles }] : []),
+                ...accountLinks.slice(2, 4),
+              ],
+            },
+          ].map((group) => (
+            <div key={group.label}>
+              <p className="px-3 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-muted/60">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.links.map((link) => {
+                  const Icon = link.icon;
+                  const active = link.href === "/account" ? pathname === "/account" : pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition",
+                        active
+                          ? "bg-forest-900 text-white shadow-sm"
+                          : "text-forest-900/60 hover:bg-leaf-mint hover:text-forest-950",
+                      )}
+                    >
+                      <Icon
+                        className={cn("h-[17px] w-[17px] transition", active ? "text-white" : "text-forest-500")}
+                        strokeWidth={1.8}
+                      />
+                      <span className="flex-1 truncate">{link.label}</span>
+                      <span className={cn("h-1.5 w-1.5 rounded-full bg-amber", !active && "opacity-0")} aria-hidden />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
-        <div className="m-4 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-forest-100">
+        <div className="mx-4 mb-3 rounded-2xl border border-forest-100 bg-leaf-mint/70 p-4">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-forest-600 shadow-sm">
             <Leaf className="h-4 w-4" />
           </span>
-          <p className="mt-3 font-display text-[15px] font-semibold leading-snug text-white">
-            Green choices for a better tomorrow.
+          <p className="mt-2.5 font-display text-[13.5px] font-semibold leading-snug text-forest-950">
+            Every order plants a tree. Green choices for a better tomorrow.
           </p>
-          <p className="mt-1.5 text-[11px] leading-relaxed text-white/50">
-            Every Leaf &amp; Pot order plants a tree. Thank you for growing with us.
+          <p className="mt-1 text-[10.5px] leading-relaxed text-forest-900/60">
+            Thank you for growing with us — shop something leafy today.
           </p>
-          <Link href="/shop" className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-forest-200 hover:text-white">
+          <Link href="/shop" className="mt-2.5 inline-flex items-center gap-1 text-[10.5px] font-semibold text-forest-800 hover:text-forest-950">
             Shop new arrivals <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
-        <div className="border-t border-white/10 px-5 py-3.5 space-y-1.5">
-          <p className="truncate text-[11px] text-white/40">Signed in as {user.email}</p>
-          <form action={logoutAction}>
-            <button type="submit" className="flex items-center gap-2 text-[11.5px] font-medium text-rose-300 hover:text-rose-200 transition">
-              <LogOut className="h-3.5 w-3.5" /> Log out
-            </button>
-          </form>
+        <div className="flex items-center gap-2.5 border-t border-line px-4 py-3.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-forest-900 text-[10px] font-bold text-white">
+            {initials(user.full_name)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12.5px] font-semibold text-forest-950">{user.full_name}</p>
+            <p className="truncate text-[10px] text-muted">{user.email}</p>
+          </div>
+          <LogoutSubmit />
         </div>
       </aside>
 
-      <div className="lg:pl-[258px]">
+      <div className="lg:pl-[264px]">
         <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <div className="lg:hidden">
-                <Brand size="sm" withTagline={false} />
+                <Brand size="sm" />
               </div>
-              <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11.5px] font-medium">
+              <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-[11.5px] font-medium sm:flex">
                 {accountCrumbs.map((crumb, idx) => (
                   <span key={crumb.href} className="inline-flex items-center gap-1.5">
                     {idx > 0 && <span className="text-forest-300 font-normal select-none">/</span>}
@@ -370,12 +419,22 @@ export function AccountShell({
               </nav>
             </div>
             <div className="flex items-center gap-1.5">
+              <Link
+                href="/"
+                aria-label="Back to home"
+                className="hidden sm:inline-flex sm:mr-0.5 h-9 items-center gap-2 rounded-full px-2.5 text-[11.5px] font-medium text-forest-700 transition hover:bg-leaf-mint hover:text-forest-950 sm:px-3"
+              >
+                <Home className="h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden />
+                <span className="hidden sm:inline">Back to home</span>
+              </Link>
               <NotificationBell notifications={notifications} unread={unread} />
-              <UserMenu user={user} />
+              <div className="hidden sm:block">
+                <UserMenu user={user} />
+              </div>
             </div>
           </div>
         </header>
-        <main id="main-content" className="mx-auto w-full max-w-[1280px] px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
+        <main id="main-content" className="mx-auto w-full max-w-[1280px] px-4 pb-32 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
           {children}
         </main>
         <footer className="hidden border-t border-line px-8 py-4 text-[11px] text-muted lg:block">
@@ -383,35 +442,7 @@ export function AccountShell({
         </footer>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-white/95 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur lg:hidden" aria-label="Mobile dashboard navigation">
-        <div className="flex items-center justify-around">
-          {[
-            { href: "/account", label: "Home", icon: Home, exact: true },
-            { href: "/account/orders", label: "Orders", icon: Package },
-            { href: "/account/wishlist", label: "Wishlist", icon: Sparkles },
-            { href: "/account/profile", label: "Profile", icon: UserIcon },
-          ].map((item) => {
-            const Icon = item.icon;
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex w-16 flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] font-medium transition",
-                  active ? "text-forest-900" : "text-muted",
-                )}
-                aria-current={active ? "page" : undefined}
-              >
-                <span className={cn("grid h-8 w-8 place-items-center rounded-full", active && "bg-leaf-soft")}>
-                  <Icon className="h-4 w-4" strokeWidth={active ? 2.1 : 1.7} />
-                </span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <TabBar />
     </div>
   );
 }
@@ -704,17 +735,7 @@ function AdminSidebar({ pathname, user, onNavigate }: { pathname: string; user: 
           </span>
           View storefront
         </Link>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[12.5px] font-medium text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
-          >
-            <span className="grid h-7 w-7 place-items-center rounded-lg text-rose-400/50">
-              <LogOut className="h-[15px] w-[15px]" strokeWidth={1.9} />
-            </span>
-            Log out
-          </button>
-        </form>
+        <LogoutSubmit variant="admin" className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[12.5px] font-medium text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition-all" />
       </div>
 
       {/* User profile strip */}

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getDb } from "@/lib/demo-store";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getSettings } from "@/lib/catalog";
@@ -278,7 +279,7 @@ export async function updatePreferencesAction(_prev: FormState, formData: FormDa
 }
 
 export async function changePasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const user = await requireUser("/account/settings");
+  const user = await requireUser("/account/profile");
   const current = String(formData.get("current_password") || "");
   const next = String(formData.get("new_password") || "");
   const confirm = String(formData.get("confirm_password") || "");
@@ -302,6 +303,42 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
     db.passwords[user.email] = next;
   }
   return { success: "Password updated." };
+}
+
+/* ------------------------------ Delete account ----------------------------- */
+
+/**
+ * Permanently deletes the signed-in user's account.
+ *
+ * The DB schema references profiles(id) with ON DELETE CASCADE on every
+ * user-owned table (orders, order items, addresses, wishlists, carts,
+ * recently viewed, reviews, loyalty and notifications), so deleting the auth
+ * user removes all personal data in one step. The browser session is signed
+ * out first, then the visitor is bounced to the storefront home page.
+ */
+export async function deleteAccountAction(): Promise<void> {
+  const user = await requireUser("/account/profile");
+
+  if (isSupabaseConfigured()) {
+    const supabase = await createServerSupabase();
+    await supabase.auth.signOut();
+    const { error } = await createAdminSupabase().auth.admin.deleteUser(user.id);
+    if (error) {
+      console.error("[account] delete user failed:", error.message);
+      throw new Error("Could not delete your account right now. Please contact support.");
+    }
+  } else {
+    // Demo store: drop the user and their personal entries (dev-only data).
+    const db = getDb();
+    db.users = db.users.filter((dbUser) => dbUser.id !== user.id);
+    delete db.passwords[user.email];
+    delete db.wishlists[user.id];
+    delete db.recentlyViewed[user.id];
+    delete db.preferences[user.id];
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/");
 }
 
 /* ------------------------------- Notifications --------------------------- */
@@ -543,6 +580,59 @@ export async function submitReviewAction(_prev: FormState, formData: FormData): 
   }
   revalidatePath("/account/orders");
   return { success: "Thank you! Your review is with our team and will appear once approved." };
+}
+
+/** Update a customer's own review — goes back to "pending approval" so moderation still applies. */
+export async function updateReviewAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser("/account/reviews");
+  const reviewId = String(formData.get("review_id") ?? "");
+  const rating = Math.round(Number(formData.get("rating") ?? 0));
+  const comment = String(formData.get("comment") ?? "").trim();
+  if (!reviewId) return { error: "Review not found." };
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    return { fieldErrors: { rating: "Pick a rating between 1 and 5." } };
+  }
+  if (comment.length < 10) return { fieldErrors: { comment: "Tell us a bit more — at least 10 characters." } };
+  if (comment.length > 800) return { fieldErrors: { comment: "Please keep it under 800 characters." } };
+
+  if (isSupabaseConfigured()) {
+    const supabase = await createServerSupabase();
+    const { data, error } = await supabase
+      .from("reviews")
+      .update({ rating, comment, is_approved: false })
+      .eq("id", reviewId)
+      .eq("user_id", user.id)
+      .select("id");
+    if (error) return { error: "Could not update your review." };
+    if (!data || data.length === 0) return { error: "Review not found." };
+  } else {
+    const db = getDb();
+    const review = db.reviews.find((r) => r.id === reviewId && r.user_id === user.id);
+    if (!review) return { error: "Review not found." };
+    review.rating = rating;
+    review.comment = comment;
+    review.is_approved = false;
+  }
+  revalidatePath("/account/reviews");
+  return { success: "Review updated! It will appear on the product page once re-approved." };
+}
+
+/** Remove a customer's own review permanently. */
+export async function deleteReviewAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser("/account/reviews");
+  const reviewId = String(formData.get("review_id") ?? "");
+  if (!reviewId) return { error: "Review not found." };
+
+  if (isSupabaseConfigured()) {
+    const supabase = await createServerSupabase();
+    const { error } = await supabase.from("reviews").delete().eq("id", reviewId).eq("user_id", user.id);
+    if (error) return { error: "Could not remove your review." };
+  } else {
+    const db = getDb();
+    db.reviews = db.reviews.filter((r) => !(r.id === reviewId && r.user_id === user.id));
+  }
+  revalidatePath("/account/reviews");
+  return { success: "Your review was removed." };
 }
 
 /* --------------------------------- Contact -------------------------------- */

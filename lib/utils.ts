@@ -77,16 +77,28 @@ export function greeting(date = new Date()) {
 }
 
 export function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "";
+  const first = (parts[0] ?? "")[0]?.toUpperCase() || "";
+  const last = parts.length > 1 ? (parts[parts.length - 1] ?? "")[0]?.toUpperCase() || "" : "";
+  return `${first}${last}`;
 }
 
 export function truncate(value: string, length = 80) {
   return value.length > length ? `${value.slice(0, length).trim()}…` : value;
+}
+
+/**
+ * Variant pot labels arrive from the nursery feed with pricing-tier suffixes
+ * like "Nursery Grow Bag (80% Price)". Strip those tags wherever a pot label
+ * is shown to customers.
+ */
+export function potTypeLabel(pot: string | null | undefined) {
+  return (pot ?? "")
+    // eslint-disable-next-line no-regex-spaces
+    .replace(/\s*\(\s*\d+%\s*price\s*\)\s*/gi, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 export function absoluteUrl(path = "") {

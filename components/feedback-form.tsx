@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { BadgeCheck, Loader2, Sparkles, Sprout, Star, X } from "lucide-react";
 import { Modal } from "@/components/interactive";
+import { useToast } from "@/components/toast";
 import { cn } from "@/lib/utils";
 import type { FormState } from "@/lib/actions/account";
 
@@ -31,6 +32,7 @@ export function OrderFeedback({
   const [hover, setHover] = useState(0);
   const [improvements, setImprovements] = useState("");
   const [autoAllowed, setAutoAllowed] = useState(false);
+  const { toast } = useToast();
 
   const thanks = state.success;
   const settled = alreadySubmitted || Boolean(thanks);
@@ -68,7 +70,11 @@ export function OrderFeedback({
     formData.set("rating", String(rating));
     formData.set("improvements", improvements);
     void submitAction({}, formData)
-      .then((result) => setState(result))
+      .then((result) => {
+        setState(result);
+        if (result.error) toast(result.error, "error");
+        else if (result.success) toast("Thanks for sharing your feedback with us!", "success");
+      })
       .finally(() => setPending(false));
   };
 

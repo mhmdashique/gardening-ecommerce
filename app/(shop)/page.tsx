@@ -26,6 +26,7 @@ import { ProductCard } from "@/components/product-card";
 import { WatchVideoButton } from "@/components/hero-video";
 import { SafeImage } from "@/components/safe-image";
 import { SectionHeading, buttonClasses } from "@/components/ui";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { formatINR } from "@/lib/utils";
 import type { Product, SiteSettings } from "@/lib/types";
 
@@ -50,7 +51,8 @@ export default async function HomePage() {
   const wishlistIds = new Set(wishlist.map((product) => product.id));
 
   return (
-    <LandingHome
+    <OnboardingGate>
+      <LandingHome
       hero={heroBanners[0] ?? null}
       offer={offerBanners[0] ?? null}
       allProducts={allProducts}
@@ -59,6 +61,7 @@ export default async function HomePage() {
       wishlistIds={wishlistIds}
       loggedIn={Boolean(user)}
     />
+    </OnboardingGate>
   );
 }
 

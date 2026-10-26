@@ -57,6 +57,12 @@ export async function openCashfreeCheckout(params: {
   if (!ready || !window.Cashfree) {
     return { completed: false, dismissed: false, redirect: false, sdkError: "load" };
   }
+
+  // The SDK renders a fixed 100vw/100svh iframe. Temporarily cancel the
+  // site-wide 0.9 zoom so the hosted checkout truly fills the viewport and
+  // sits above the mobile dock.
+  const root = document.documentElement;
+  root.classList.add("cashfree-checkout-open");
   try {
     const cashfree = window.Cashfree({ mode: params.mode || "sandbox", appId: params.appId });
     const result = await cashfree.checkout({
@@ -73,6 +79,8 @@ export async function openCashfreeCheckout(params: {
   } catch (error) {
     console.error("[cashfree] checkout threw", error);
     return { completed: false, dismissed: true, redirect: false, sdkError: "open" };
+  } finally {
+    root.classList.remove("cashfree-checkout-open");
   }
 }
 
