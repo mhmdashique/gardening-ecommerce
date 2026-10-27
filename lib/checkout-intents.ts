@@ -3,6 +3,7 @@ import { getOrderForUserAdmin } from "@/lib/catalog";
 import {
   cashfreeAppId,
   cashfreeConfigured,
+  cashfreeDiagnostics,
   cashfreeMode,
   createCashfreeOrder,
   fetchCashfreeOrderPayments,
@@ -224,6 +225,7 @@ export async function startOnlineCheckout(
   input: CheckoutInput,
 ): Promise<StartOnlineCheckoutResult> {
   if (!cashfreeConfigured()) {
+    console.error("[cashfree] missing configuration", cashfreeDiagnostics());
     return {
       ok: false,
       error: "Online payments are temporarily unavailable. Please choose cash on delivery.",
@@ -252,10 +254,10 @@ export async function startOnlineCheckout(
       notes: { user_id: user.id, checkout: "1" },
     });
   } catch (error) {
-    console.error(
-      "[checkout] cashfree order failed",
-      error instanceof Error ? error.message : "unknown",
-    );
+    console.error("[checkout] cashfree order failed", {
+      ...cashfreeDiagnostics(),
+      error: error instanceof Error ? error.message : "unknown",
+    });
     return {
       ok: false,
       error: "We couldn't start the online payment. Please try again or choose cash on delivery.",

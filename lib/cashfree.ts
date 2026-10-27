@@ -2,7 +2,10 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 /** Cashfree payment environment: "sandbox" (default) or "production". */
 export function cashfreeMode(): "sandbox" | "production" {
-  return process.env.CASHFREE_ENV === "production" ? "production" : "sandbox";
+  const environment = process.env.CASHFREE_ENV?.trim().toLowerCase();
+  return environment === "production" || environment === "live" || environment === "prod"
+    ? "production"
+    : "sandbox";
 }
 
 function cashfreeBaseApiUrl() {
@@ -14,10 +17,11 @@ function cashfreeBaseApiUrl() {
 const API_VERSION = "2023-08-01";
 
 export function cashfreeConfigured() {
+  // Cashfree authenticates with the App ID + Secret. The older CASHFREE_API_KEY
+  // variable is optional and kept only for backwards compatibility.
   return Boolean(
-    process.env.CASHFREE_API_KEY &&
-    process.env.CASHFREE_SECRET_KEY &&
-    process.env.CASHFREE_APP_ID
+    process.env.CASHFREE_APP_ID?.trim() &&
+    process.env.CASHFREE_SECRET_KEY?.trim()
   );
 }
 
@@ -26,7 +30,24 @@ export function cashfreePublicKey() {
 }
 
 export function cashfreeAppId() {
-  return process.env.CASHFREE_APP_ID || "";
+  return process.env.CASHFREE_APP_ID?.trim() || "";
+}
+
+/** Non-secret configuration summary for deployment diagnostics. */
+export function cashfreeDiagnostics() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "";
+  return {
+    hasAppId: Boolean(process.env.CASHFREE_APP_ID?.trim()),
+    hasSecret: Boolean(process.env.CASHFREE_SECRET_KEY?.trim()),
+    hasApiKey: Boolean(process.env.CASHFREE_API_KEY?.trim()),
+    hasWebhookSecret: Boolean(
+      process.env.CASHFREE_WEBHOOK_SECRET?.trim() || process.env.CASHFREE_SECRET_KEY?.trim()
+    ),
+    mode: cashfreeMode(),
+    siteUrl: siteUrl || null,
+    siteUrlIsHttps: /^https:\/\//i.test(siteUrl),
+    configured: cashfreeConfigured(),
+  };
 }
 
 export interface CashfreeOrder {
@@ -58,18 +79,37 @@ export async function createCashfreeOrder(params: {
   notes?: Record<string, string>;
   returnUrl?: string;
 }): Promise<CashfreeOrder> {
-  const apiKey = process.env.CASHFREE_API_KEY;
-  const secretKey = process.env.CASHFREE_SECRET_KEY;
-  const appId = process.env.CASHFREE_APP_ID;
-  if (!apiKey || !secretKey || !appId) throw new Error("Cashfree is not configured.");
+  const apiKey = process.env.CASHFREE_API_KEY?.trim();
+  const secretKey = process.env.CASHFREE_SECRET_KEY?.trim();
+  const appId = process.env.CASHFREE_APP_ID?.trim();
+  if (!secretKey || !appId) {
+    throw new Error("Cashfree is not configured. Set CASHFREE_APP_ID and CASHFREE_SECRET_KEY.");
+  }
+
+  // Cashfree only accepts letters/spaces in customer_name and exactly 10 digits
+  // for customer_phone. Normalize old saved addresses before sending them.
+  const customerId =
+    params.customerDetails.id.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 50) ||
+    `customer_${Date.now()}`;
+  const customerName =
+    params.customerDetails.name
+      .replace(/[^a-zA-Z\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "Customer";
+  const phoneDigits = params.customerDetails.phone.replace(/\D/g, "");
+  const customerPhone = phoneDigits.length > 10 ? phoneDigits.slice(-10) : phoneDigits;
+  if (!/^[6-9][0-9]{9}$/.test(customerPhone)) {
+    throw new Error("A valid 10-digit customer phone number is required for online payment.");
+  }
 
   const response = await fetch(`${cashfreeBaseApiUrl()}/pg/orders`, {
     method: "POST",
     headers: {
-      "x-api-key": apiKey,
       "x-client-id": appId,
       "x-client-secret": secretKey,
       "x-api-version": API_VERSION,
+      ...(apiKey ? { "x-api-key": apiKey } : {}),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -77,10 +117,10 @@ export async function createCashfreeOrder(params: {
       order_amount: Number(params.amount.toFixed(2)),
       order_currency: params.currency,
       customer_details: {
-        customer_id: params.customerDetails.id,
-        customer_name: params.customerDetails.name,
-        customer_email: params.customerDetails.email,
-        customer_phone: params.customerDetails.phone,
+        customer_id: customerId,
+        customer_name: customerName,
+        customer_email: params.customerDetails.email.trim().toLowerCase(),
+        customer_phone: customerPhone,
       },
       order_meta: params.returnUrl ? { return_url: params.returnUrl } : undefined,
       order_note: `Leaf & Pot ${params.orderId}`,
@@ -97,17 +137,17 @@ export async function createCashfreeOrder(params: {
 
 /** Fetches an existing Cashfree order by its merchant order id. Returns null when it does not exist. */
 export async function fetchCashfreeOrder(orderId: string): Promise<CashfreeOrder | null> {
-  const apiKey = process.env.CASHFREE_API_KEY;
-  const appId = process.env.CASHFREE_APP_ID;
-  const secretKey = process.env.CASHFREE_SECRET_KEY;
-  if (!apiKey || !appId || !secretKey) return null;
+  const apiKey = process.env.CASHFREE_API_KEY?.trim();
+  const appId = process.env.CASHFREE_APP_ID?.trim();
+  const secretKey = process.env.CASHFREE_SECRET_KEY?.trim();
+  if (!appId || !secretKey) return null;
 
   const response = await fetch(`${cashfreeBaseApiUrl()}/pg/orders/${encodeURIComponent(orderId)}`, {
     headers: {
-      "x-api-key": apiKey,
       "x-client-id": appId,
       "x-client-secret": secretKey,
       "x-api-version": API_VERSION,
+      ...(apiKey ? { "x-api-key": apiKey } : {}),
     },
     cache: "no-store",
   });
@@ -146,19 +186,19 @@ export interface CashfreeOrderPayment {
  * This is the authoritative source of truth — client callbacks are never trusted.
  */
 export async function fetchCashfreeOrderPayments(orderId: string): Promise<CashfreeOrderPayment[]> {
-  const apiKey = process.env.CASHFREE_API_KEY;
-  const appId = process.env.CASHFREE_APP_ID;
-  const secretKey = process.env.CASHFREE_SECRET_KEY;
-  if (!apiKey || !appId || !secretKey) return [];
+  const apiKey = process.env.CASHFREE_API_KEY?.trim();
+  const appId = process.env.CASHFREE_APP_ID?.trim();
+  const secretKey = process.env.CASHFREE_SECRET_KEY?.trim();
+  if (!appId || !secretKey) return [];
 
   const response = await fetch(
     `${cashfreeBaseApiUrl()}/pg/orders/${encodeURIComponent(orderId)}/payments`,
     {
       headers: {
-        "x-api-key": apiKey,
         "x-client-id": appId,
         "x-client-secret": secretKey,
         "x-api-version": API_VERSION,
+        ...(apiKey ? { "x-api-key": apiKey } : {}),
       },
       cache: "no-store",
     },

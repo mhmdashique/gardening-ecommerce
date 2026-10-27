@@ -117,10 +117,10 @@ Every variable is optional in demo mode.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key, used by the browser and SSR clients |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only key for admin writes. Bypasses RLS, never expose it |
 | `CASHFREE_APP_ID` | For online payments | Cashfree app id (Merchant Dashboard → API keys) |
-| `CASHFREE_API_KEY` | For online payments | Cashfree client API key |
 | `CASHFREE_SECRET_KEY` | For online payments | Server-side secret used to verify payments and sign webhooks |
-| `NEXT_PUBLIC_CASHFREE_API_KEY` | For online payments | Optional public copy of the API key |
-| `CASHFREE_ENV` | For online payments | `sandbox` (default) or `production` |
+| `CASHFREE_API_KEY` | No | Optional legacy client key; App ID + Secret are sufficient |
+| `NEXT_PUBLIC_CASHFREE_API_KEY` | No | Optional legacy public copy of the API key |
+| `CASHFREE_ENV` | For online payments | `sandbox` (default) or `production` (case-insensitive) |
 | `CASHFREE_WEBHOOK_SECRET` | For webhooks | Optional explicit secret for the Cashfree webhook |
 | `RESEND_API_KEY` | For email | Resend API key |
 | `EMAIL_FROM` | For email | Verified sender, e.g. `Leaf & Pot <orders@leafandpot.in>` |
@@ -225,11 +225,12 @@ never imported into a client component.
 
 ## Cashfree payment setup
 
-1. Create a Cashfree merchant account and generate API keys (app id, client key
-   and secret key).
-2. Add `CASHFREE_APP_ID`, `CASHFREE_API_KEY` and `CASHFREE_SECRET_KEY` to
-   `.env.local`. Leave `CASHFREE_ENV` unset for sandbox; set it to `production`
-   when going live.
+1. Create a Cashfree merchant account and generate API keys (App ID and Secret
+   Key). `CASHFREE_API_KEY` is optional and only kept for older deployments.
+2. Add `CASHFREE_APP_ID` and `CASHFREE_SECRET_KEY` to `.env.local`. Leave
+   `CASHFREE_ENV` unset for sandbox; set it to `production` when going live.
+   Set `NEXT_PUBLIC_SITE_URL` to the deployed `https://` origin and redeploy
+   after changing environment variables.
 3. Add a webhook in the Cashfree **Merchant Dashboard → Webhooks**:
    - **URL:** `https://your-domain.com/api/webhooks/cashfree`
    - **API version:** `2023-08-01`
