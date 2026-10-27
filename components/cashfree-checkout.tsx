@@ -48,6 +48,19 @@ export interface CashfreeCheckoutResult {
   sdkError?: string;
 }
 
+/** Closing the Cashfree modal is a normal cancellation, not an application error. */
+function isCashfreeAbort(error: unknown): boolean {
+  if (!error) return false;
+  if (typeof error === "string") return /payment has been aborted/i.test(error);
+  if (typeof error === "object") {
+    const { code, message, error: nested } = error as { code?: unknown; message?: unknown; error?: unknown };
+    if (code === "payment_aborted") return true;
+    if (typeof message === "string" && /payment has been aborted/i.test(message)) return true;
+    if (nested && nested !== error) return isCashfreeAbort(nested);
+  }
+  return false;
+}
+
 export async function openCashfreeCheckout(params: {
   appId?: string;
   mode?: string;
@@ -71,12 +84,18 @@ export async function openCashfreeCheckout(params: {
     });
     if (result?.redirect) return { completed: false, dismissed: false, redirect: true };
     if (result?.error) {
+      if (isCashfreeAbort(result.error)) {
+        return { completed: false, dismissed: true, redirect: false };
+      }
       // Surfaced in the browser console so a gateway failure is traceable.
       console.error("[cashfree] checkout returned an error", result.error);
       return { completed: false, dismissed: true, redirect: false };
     }
     return { completed: true, dismissed: false, redirect: false };
   } catch (error) {
+    if (isCashfreeAbort(error)) {
+      return { completed: false, dismissed: true, redirect: false };
+    }
     console.error("[cashfree] checkout threw", error);
     return { completed: false, dismissed: true, redirect: false, sdkError: "open" };
   } finally {

@@ -12,6 +12,10 @@ function isProtected(pathname: string) {
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  if (request.nextUrl.pathname.startsWith("/api/cashfree/webhook")) {
+    return NextResponse.next();
+  }
+
   if (isSupabaseConfigured()) {
     let response = NextResponse.next({ request });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
