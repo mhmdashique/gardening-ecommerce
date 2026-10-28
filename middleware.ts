@@ -9,14 +9,36 @@ function isProtected(pathname: string) {
   return protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+function redirectToLogin(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = "";
+  url.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  return NextResponse.redirect(url);
+}
 
-  if (request.nextUrl.pathname.startsWith("/api/cashfree/webhook")) {
-    return NextResponse.next();
-  }
+function hasSupabaseSession(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("auth-token"));
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // API routes authenticate inside their handlers.
+  if (pathname.startsWith("/api/")) return NextResponse.next();
+
+  const protectedRoute = isProtected(pathname);
 
   if (isSupabaseConfigured()) {
+    const hasSession = hasSupabaseSession(request);
+
+    // Public pages should not pay for an auth round trip when the visitor is
+    // anonymous. Protected pages can redirect without calling Supabase too.
+    if (!protectedRoute && !hasSession) return NextResponse.next();
+    if (protectedRoute && !hasSession) return redirectToLogin(request);
+
     let response = NextResponse.next({ request });
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -39,26 +61,14 @@ export async function middleware(request: NextRequest) {
       user = null;
     }
 
-    if (isProtected(pathname) && !user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.search = "";
-      url.searchParams.set("next", `${pathname}${search}`);
-      return NextResponse.redirect(url);
-    }
+    if (protectedRoute && !user) return redirectToLogin(request);
 
     return response;
   }
 
-  if (isProtected(pathname)) {
+  if (protectedRoute) {
     const payload = await verifyDemoSession(request.cookies.get(DEMO_COOKIE)?.value);
-    if (!payload) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.search = "";
-      url.searchParams.set("next", `${pathname}${search}`);
-      return NextResponse.redirect(url);
-    }
+    if (!payload) return redirectToLogin(request);
   }
 
   return NextResponse.next();

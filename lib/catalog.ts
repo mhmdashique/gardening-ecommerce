@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import {
   demoProducts,
   demoCategories,
@@ -11,7 +13,7 @@ import {
 import { demoCategoryWithCount, getDb } from "@/lib/demo-store";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createAdminSupabase } from "@/lib/supabase/admin";
-import { createServerSupabaseReadOnly } from "@/lib/supabase/server";
+import { createPublicSupabase, createServerSupabaseReadOnly } from "@/lib/supabase/server";
 import { minPrice } from "@/lib/product-utils";
 import { potTypeLabel } from "@/lib/utils";
 import type {
@@ -154,17 +156,16 @@ const orderSelect = `*, profiles(full_name, email), order_items(*), order_status
 /*  Catalog                                                                    */
 /* -------------------------------------------------------------------------- */
 
-export async function getCategories(includeInactive = false): Promise<Category[]> {
+async function fetchCategories(includeInactive: boolean): Promise<Category[]> {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = includeInactive ? await createServerSupabaseReadOnly() : createPublicSupabase();
     if (!supabase) return [];
     let query = supabase.from("categories").select("*").order("sort_order");
     if (!includeInactive) query = query.eq("is_active", true);
-    const { data } = await query;
-    const { data: products } = await supabase
-      .from("products")
-      .select("category_id, is_best_seller")
-      .eq("is_active", true);
+    const [{ data }, { data: products }] = await Promise.all([
+      query,
+      supabase.from("products").select("category_id, is_best_seller").eq("is_active", true),
+    ]);
     return ((data ?? []) as Row[]).map((row) => {
       const count =
         row.slug === "best-sellers"
@@ -192,14 +193,25 @@ export async function getCategories(includeInactive = false): Promise<Category[]
     .map(demoCategoryWithCount);
 }
 
+const getCachedCategories = unstable_cache(
+  () => fetchCategories(false),
+  ["catalog", "categories", "active"],
+  { revalidate: 60, tags: ["catalog"] },
+);
+
+export const getCategories = cache(async (includeInactive = false): Promise<Category[]> => {
+  if (includeInactive || !isSupabaseConfigured()) return fetchCategories(includeInactive);
+  return getCachedCategories();
+});
+
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const categories = await getCategories();
   return categories.find((c) => c.slug === slug) ?? null;
 }
 
-export async function getAllProducts(): Promise<Product[]> {
+async function fetchAllProducts(): Promise<Product[]> {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = createPublicSupabase();
     if (!supabase) return [];
     const { data } = await supabase
       .from("products")
@@ -211,6 +223,17 @@ export async function getAllProducts(): Promise<Product[]> {
   // Fallback: 7 real plants with local images and real Indian market prices
   return demoProducts.filter((p) => p.is_active);
 }
+
+const getCachedAllProducts = unstable_cache(
+  fetchAllProducts,
+  ["catalog", "products", "active"],
+  { revalidate: 60, tags: ["catalog"] },
+);
+
+export const getAllProducts = cache(async (): Promise<Product[]> => {
+  if (!isSupabaseConfigured()) return fetchAllProducts();
+  return getCachedAllProducts();
+});
 
 function matchesFilters(product: Product, filters: ProductFilters) {
   if (filters.q) {
@@ -275,9 +298,9 @@ export async function getProducts(filters: ProductFilters = {}): Promise<PagedPr
   };
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = createPublicSupabase();
     if (!supabase) return null;
     const { data } = await supabase
       .from("products")
@@ -287,7 +310,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return data ? mapProductRow(data as Row) : null;
   }
   return demoProducts.find((p) => p.slug === slug) ?? null;
-}
+});
 
 export async function getProductById(id: string): Promise<Product | null> {
   if (isSupabaseConfigured()) {
@@ -387,50 +410,58 @@ export async function getVariantForCheckout(variantId: string) {
 /*  Banners, reviews, settings, coupons, zones                                 */
 /* -------------------------------------------------------------------------- */
 
-export async function getBanners(placement?: BannerPlacement): Promise<Banner[]> {
+async function fetchActiveBanners(): Promise<Banner[]> {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = createPublicSupabase();
     if (!supabase) return [];
-    let query = supabase.from("banners").select("*").eq("is_active", true).order("sort_order");
-    if (placement) query = query.eq("placement", placement);
-    const { data } = await query;
-    const now = new Date();
-    return ((data ?? []) as Row[])
-      .filter((b) => {
-        if (b.starts_at && new Date(b.starts_at) > now) return false;
-        if (b.ends_at && new Date(b.ends_at) < now) return false;
-        return true;
-      })
-      .map((b) => ({
-        id: String(b.id),
-        placement: b.placement,
-        title: String(b.title),
-        subtitle: (b.subtitle as string | null) ?? null,
-        eyebrow: (b.eyebrow as string | null) ?? null,
-        image_url: (b.image_url as string | null) ?? null,
-        cta_label: (b.cta_label as string | null) ?? null,
-        cta_url: (b.cta_url as string | null) ?? null,
-        is_active: b.is_active !== false,
-        sort_order: Number(b.sort_order ?? 0),
-        starts_at: (b.starts_at as string | null) ?? null,
-        ends_at: (b.ends_at as string | null) ?? null,
-      }));
+    const { data } = await supabase
+      .from("banners")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order");
+    return ((data ?? []) as Row[]).map((b) => ({
+      id: String(b.id),
+      placement: b.placement,
+      title: String(b.title),
+      subtitle: (b.subtitle as string | null) ?? null,
+      eyebrow: (b.eyebrow as string | null) ?? null,
+      image_url: (b.image_url as string | null) ?? null,
+      cta_label: (b.cta_label as string | null) ?? null,
+      cta_url: (b.cta_url as string | null) ?? null,
+      is_active: b.is_active !== false,
+      sort_order: Number(b.sort_order ?? 0),
+      starts_at: (b.starts_at as string | null) ?? null,
+      ends_at: (b.ends_at as string | null) ?? null,
+    }));
   }
-  const now = new Date();
-  return demoBanners
-    .filter(
-      (b) =>
-        b.is_active &&
-        (!placement || b.placement === placement) &&
-        (!b.starts_at || new Date(b.starts_at) <= now) &&
-        (!b.ends_at || new Date(b.ends_at) >= now),
-    )
-    .sort((a, b) => a.sort_order - b.sort_order);
+  return demoBanners.filter((b) => b.is_active).sort((a, b) => a.sort_order - b.sort_order);
 }
 
-export async function getProductReviews(productId: string): Promise<Review[]> {
+const getCachedActiveBanners = unstable_cache(
+  fetchActiveBanners,
+  ["catalog", "banners", "active"],
+  { revalidate: 60, tags: ["catalog"] },
+);
+
+const getActiveBanners = cache(async (): Promise<Banner[]> => {
+  if (!isSupabaseConfigured()) return fetchActiveBanners();
+  return getCachedActiveBanners();
+});
+
+export async function getBanners(placement?: BannerPlacement): Promise<Banner[]> {
+  const banners = await getActiveBanners();
+  const now = new Date();
+  return banners.filter((b) => {
+    if (placement && b.placement !== placement) return false;
+    if (b.starts_at && new Date(b.starts_at) > now) return false;
+    if (b.ends_at && new Date(b.ends_at) < now) return false;
+    return true;
+  });
+}
+
+export const getProductReviews = cache(async (productId: string): Promise<Review[]> => {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = createPublicSupabase();
     if (!supabase) return [];
     const { data } = await supabase
       .from("reviews")
@@ -453,11 +484,11 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
   return demoReviews
     .filter((r) => r.product_id === productId && r.is_approved)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-}
+});
 
-export async function getSettings(): Promise<SiteSettings> {
+async function fetchSettings(): Promise<SiteSettings> {
   if (isSupabaseConfigured()) {
-    const supabase = await createServerSupabaseReadOnly();
+    const supabase = createPublicSupabase();
     if (!supabase) return demoSettings;
     const { data } = await supabase.from("site_settings").select("key, value");
     const settings = { ...demoSettings };
@@ -476,6 +507,16 @@ export async function getSettings(): Promise<SiteSettings> {
     loyalty_enabled: demoSettings.loyalty_earn_rate > 0 && demoSettings.loyalty_redeem_rate > 0,
   };
 }
+
+const getCachedSettings = unstable_cache(fetchSettings, ["catalog", "settings"], {
+  revalidate: 60,
+  tags: ["catalog"],
+});
+
+export const getSettings = cache(async (): Promise<SiteSettings> => {
+  if (!isSupabaseConfigured()) return fetchSettings();
+  return getCachedSettings();
+});
 
 /**
  * Every valid delivery pincode is serviceable. Rows in `delivery_zones` only

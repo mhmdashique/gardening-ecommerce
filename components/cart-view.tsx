@@ -92,7 +92,6 @@ export function CartView() {
                       fill
                       sizes="130px"
                       className="object-cover object-center"
-                      unoptimized={line.image.startsWith("/")}
                     />
                     <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2 py-1 text-[9px] font-bold text-forest-800 backdrop-blur-sm shadow-sm">
                       ×{line.qty}

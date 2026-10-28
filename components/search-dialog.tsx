@@ -155,7 +155,6 @@ export function SearchDialog({
                             fill
                             sizes="48px"
                             className="object-cover"
-                            unoptimized={result.image.startsWith("/")}
                           />
                         </span>
                         <span className="min-w-0 flex-1">

@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 
@@ -38,4 +39,25 @@ export async function createServerSupabaseReadOnly() {
       },
     },
   });
+}
+
+/**
+ * Cookie-less anonymous client for public catalog reads.
+ * Keeping this separate from the cookie client lets Next.js cache the data
+ * across requests instead of treating every read as dynamic.
+ */
+let publicClient: SupabaseClient | null = null;
+
+export function createPublicSupabase(): SupabaseClient | null {
+  if (!isSupabaseConfigured()) return null;
+  if (!publicClient) {
+    publicClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
+  }
+  return publicClient;
 }

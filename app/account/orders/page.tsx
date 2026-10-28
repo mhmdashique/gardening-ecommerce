@@ -42,7 +42,6 @@ function MobileOrderCard({ order }: { order: Order }) {
             fill
             sizes="40px"
             className="object-cover"
-            unoptimized={Boolean(first?.image?.startsWith("/"))}
           />
         </span>
         <span className="min-w-0 flex-1">

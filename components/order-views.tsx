@@ -154,7 +154,6 @@ export function OrderCard({ order }: { order: Order }) {
                   fill
                   sizes="40px"
                   className="object-cover"
-                  unoptimized={item.image.startsWith("/")}
                 />
               </span>
               <span className="min-w-0 flex-1">

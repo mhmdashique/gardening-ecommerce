@@ -1,7 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function SafeImage({
@@ -23,19 +20,13 @@ export function SafeImage({
   sizes?: string;
   priority?: boolean;
 }) {
-  const [source, setSource] = useState(src || "/images/plant-placeholder.svg");
-
-  useEffect(() => {
-    setSource(src || "/images/plant-placeholder.svg");
-  }, [src]);
-  const isLocal = source.startsWith("/");
+  const source = src || "/images/plant-placeholder.svg";
   const props = {
     src: source,
     alt,
     className: cn("object-cover", className),
     sizes: sizes ?? "(max-width: 768px) 50vw, 25vw",
     priority,
-    unoptimized: isLocal,
   };
   if (fill)
     return (

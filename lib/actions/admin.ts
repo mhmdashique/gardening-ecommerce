@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getDb } from "@/lib/demo-store";
 import { createAdminSupabase } from "@/lib/supabase/admin";
@@ -52,6 +52,7 @@ function text(formData: FormData, key: string) {
 }
 
 function revalidateStore() {
+  revalidateTag("catalog");
   revalidatePath("/");
   revalidatePath("/shop");
   revalidatePath("/cart");
@@ -334,6 +335,7 @@ export async function saveCategoryAction(_prev: AdminFormState, formData: FormDa
       });
     }
   }
+  revalidateTag("catalog");
   revalidatePath("/admin/categories");
   revalidatePath("/shop");
   revalidatePath("/");
@@ -351,6 +353,7 @@ export async function toggleCategoryAction(categoryId: string, active: boolean):
     if (!category) return { error: "Category not found." };
     category.is_active = active;
   }
+  revalidateTag("catalog");
   revalidatePath("/admin/categories");
   revalidatePath("/shop");
   revalidatePath("/");
@@ -782,6 +785,7 @@ export async function saveBannerAction(_prev: AdminFormState, formData: FormData
       db.banners.push({ id: `b-${Date.now()}`, ...payload });
     }
   }
+  revalidateTag("catalog");
   revalidatePath("/admin/banners");
   revalidatePath("/");
   return { success: "Banner saved." };
@@ -796,6 +800,7 @@ export async function deleteBannerAction(bannerId: string): Promise<AdminFormSta
     const db = getDb();
     db.banners = db.banners.filter((entry) => entry.id !== bannerId);
   }
+  revalidateTag("catalog");
   revalidatePath("/admin/banners");
   revalidatePath("/");
   return { success: "Banner removed." };
