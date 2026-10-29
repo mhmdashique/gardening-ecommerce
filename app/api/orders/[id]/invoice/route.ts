@@ -10,10 +10,13 @@ function money(value: number) {
   return `Rs. ${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(Number(value) || 0)}`;
 }
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Please log in." }, { status: 401 });
   if (user.is_blocked) return NextResponse.json({ error: "This account is unavailable." }, { status: 403 });
+
+  // ?preview=1 renders the PDF inline (new tab) instead of downloading it.
+  const preview = new URL(request.url).searchParams.get("preview") === "1";
 
   const { id } = await params;
   const [order, settings] = await Promise.all([
@@ -148,7 +151,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return new NextResponse(new Blob([Buffer.from(bytes)], { type: "application/pdf" }), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="invoice-${order.order_number}.pdf"`,
+      "Content-Disposition": `${preview ? "inline" : "attachment"}; filename="invoice-${order.order_number}.pdf"`,
       "Cache-Control": "private, no-store",
     },
   });

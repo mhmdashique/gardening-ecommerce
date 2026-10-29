@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { useToast } from "@/components/toast";
+import { premiumSurface } from "@/components/premium";
 import { cn } from "@/lib/utils";
 
 /**
@@ -47,25 +48,25 @@ export function LanguagePicker() {
 
   return (
     <div className="sm:hidden">
-      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+      <div className={cn(premiumSurface, "overflow-hidden")}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-leaf-mint/40"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-leaf-mint/50"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-leaf-mint text-forest-700">
-            <Globe className="h-4 w-4" strokeWidth={1.8} />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-forest-50 text-forest-700 ring-1 ring-forest-100/70">
+            <Globe className="h-[18px] w-[18px]" strokeWidth={1.7} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-semibold text-forest-950">Language</span>
+            <span className="block text-[13.5px] font-semibold tracking-tight text-forest-950">Language</span>
           </span>
           <span className="shrink-0 text-[12px] font-semibold text-forest-900">{current}</span>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted transition-transform", open && "rotate-180")} />
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-forest-300 transition-transform", open && "rotate-180")} />
         </button>
 
         {open && (
-          <div className="border-t border-line bg-forest-50/40 px-1 py-1">
+          <div className="border-t border-line/60 bg-forest-50/40 px-1.5 py-1.5">
             {LANGUAGES.map((lang) => {
               const active = selected === lang.code;
               return (

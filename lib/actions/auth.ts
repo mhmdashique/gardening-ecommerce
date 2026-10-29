@@ -24,6 +24,27 @@ export interface AuthState {
   fieldErrors?: Record<string, string>;
 }
 
+/**
+ * Origin of the current request, used for auth callback URLs.
+ *
+ * Hardcoding NEXT_PUBLIC_SITE_URL breaks sign-in on any host that isn't the
+ * production domain (localhost, preview deployments): the PKCE verifier cookie
+ * is written on the current host, so the callback has to come back to that same
+ * host or the exchange fails with "link is invalid or has expired".
+ */
+async function requestOrigin() {
+  const headerList = await headers();
+  const host =
+    headerList.get("x-forwarded-host")?.split(",")[0]?.trim() || headerList.get("host");
+  if (host) {
+    const proto =
+      headerList.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+    return `${proto}://${host}`;
+  }
+  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+}
+
 function zodError(error: { flatten: () => { fieldErrors: Record<string, string[]>; formErrors: string[] } }): AuthState {
   const flattened = error.flatten();
   const fieldErrors: Record<string, string> = {};
@@ -163,7 +184,7 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
         state: parsed.data.state,
         pincode: parsed.data.pincode,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/account`,
+      emailRedirectTo: `${await requestOrigin()}/auth/callback?next=/account`,
     },
   });
   if (error) return { error: error.message };
@@ -228,7 +249,7 @@ export async function forgotPasswordAction(_prev: AuthState, formData: FormData)
   }
   const supabase = await createServerSupabase();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/reset-password`,
+    redirectTo: `${await requestOrigin()}/auth/callback?next=/reset-password`,
   });
   return { success: "If that email is registered, a reset link is on its way." };
 }
@@ -256,7 +277,7 @@ export async function googleLoginAction() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/account`,
+      redirectTo: `${await requestOrigin()}/auth/callback?next=/account`,
     },
   });
   if (error || !data.url) return { error: error?.message ?? "Could not start Google sign-in." };
@@ -321,7 +342,7 @@ export async function resendVerificationAction(): Promise<AuthState> {
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: user.email,
-    options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback` },
+    options: { emailRedirectTo: `${await requestOrigin()}/auth/callback` },
   });
   return error ? { error: error.message } : { success: "Verification email sent." };
 }

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const code = url.searchParams.get("code");
   const next = safeNextPath(url.searchParams.get("next"), "/account");
-  const error = url.searchParams.get("error_description");
+  const error = url.searchParams.get("error_description") ?? url.searchParams.get("error");
 
   if (error) {
     const redirectUrl = url.clone();

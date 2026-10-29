@@ -97,20 +97,32 @@ export function StatusChip({ status, dot = true }: { status: string; dot?: boole
   );
 }
 
-/** Payment badge: "Paid" only when money was captured, otherwise "Unpaid". */
+/** Payment badge: green for captured money, yellow for anything still unpaid. */
 export function PaymentStatusChip({ status, dot = true }: { status: string; dot?: boolean }) {
   const normalized = status.toLowerCase();
-  const tone =
-    normalized === "paid" || normalized === "captured"
-      ? "success"
-      : normalized === "refunded"
-        ? "neutral"
-        : normalized === "failed"
-          ? "danger"
-          : "amber";
+  const paid = normalized === "paid" || normalized === "captured";
+  const refunded = normalized === "refunded";
+  const failed = normalized === "failed";
+
   return (
-    <span className={cn("chip", chipStyles[tone])}>
-      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" aria-hidden />}
+    <span
+      className={cn(
+        "chip ring-1 ring-inset",
+        paid && "bg-success-soft text-success-ink ring-success/30",
+        !paid && refunded && "bg-forest-50 text-forest-800 ring-line",
+        !paid && failed && "bg-danger-soft text-danger-ink ring-danger/25",
+        !paid && !refunded && !failed && "bg-amber-soft text-amber-ink ring-amber/40",
+      )}
+    >
+      {dot && (
+        <span
+          className={cn(
+            "h-1.5 w-1.5 rounded-full",
+            paid ? "bg-success" : failed ? "bg-danger" : refunded ? "bg-forest-400" : "bg-amber",
+          )}
+          aria-hidden
+        />
+      )}
       {paymentStatusLabel(status)}
     </span>
   );
@@ -300,19 +312,29 @@ export function EmptyState({
   icon: Icon = Inbox,
   action,
   className,
+  titleClassName,
 }: {
   title: string;
   description?: string;
   icon?: LucideIcon;
   action?: React.ReactNode;
   className?: string;
+  /** Override the title styling (e.g. sans-serif inside the account area). */
+  titleClassName?: string;
 }) {
   return (
     <div className={cn("flex flex-col items-center justify-center rounded-2xl border border-dashed border-forest-200 bg-leaf-mint/40 px-6 py-14 text-center", className)}>
       <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-forest-600 shadow-soft">
         <Icon className="h-6 w-6" aria-hidden />
       </span>
-      <h3 className="mt-4 font-display text-xl font-semibold text-forest-950">{title}</h3>
+      <h3
+        className={cn(
+          titleClassName ?? "font-display text-xl font-semibold text-forest-950",
+          "mt-4",
+        )}
+      >
+        {title}
+      </h3>
       {description && <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

@@ -28,7 +28,9 @@ import {
   type FormState,
 } from "@/lib/actions/account";
 import { changePasswordAction } from "@/lib/actions/account";
+import { verifyPasswordEmailAction } from "@/lib/actions/account";
 import { deleteAccountAction } from "@/lib/actions/account";
+import { maskEmail } from "@/lib/password-verification";
 import { Modal } from "@/components/interactive";
 import { useToast } from "@/components/toast";
 import { Badge, Button, Checkbox, Field, Input, Select, Textarea } from "@/components/ui";
@@ -37,6 +39,19 @@ import { cn, formatDate, formatINR } from "@/lib/utils";
 import type { Address, Notification, OrderItem } from "@/lib/types";
 
 const initial: FormState = {};
+
+/**
+ * Surface an action result as a toast. The inline `Alert` renders the same
+ * message in-page; this adds the floating confirmation/error toast on top.
+ */
+function useActionToast(state: FormState) {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (state.success) toast(state.success);
+    else if (state.error) toast(state.error, "error");
+  }, [state.success, state.error, toast]);
+}
 
 function Alert({ state }: { state: FormState }) {
   if (!state.error && !state.success) return null;
@@ -128,6 +143,8 @@ export function PreferencesForm({
   sms: boolean;
 }) {
   const [state, action, pending] = useActionState(updatePreferencesAction, initial);
+  useActionToast(state);
+
   return (
     <form action={action} className="space-y-4">
       <Alert state={state} />
@@ -145,6 +162,8 @@ export function PreferencesForm({
 
 export function PasswordForm() {
   const [state, action, pending] = useActionState(changePasswordAction, initial);
+  useActionToast(state);
+
   return (
     <form action={action} className="space-y-4">
       <Alert state={state} />
@@ -164,6 +183,38 @@ export function PasswordForm() {
   );
 }
 
+/** Step 1 of the password change: confirm the account email first. */
+export function VerifyEmailForm({ email }: { email: string }) {
+  const [state, action, pending] = useActionState(verifyPasswordEmailAction, initial);
+  useActionToast(state);
+
+  return (
+    <form action={action} className="space-y-4">
+      <Alert state={state} />
+      <Field
+        label="Account email"
+        htmlFor="verify-email"
+        hint={`We'll check it against ${maskEmail(email)}.`}
+        required
+      >
+        <Input
+          id="verify-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="you@example.com"
+          required
+        />
+      </Field>
+      <SubmitButton pending={pending}>Verify email</SubmitButton>
+      <p className="text-[10.5px] leading-relaxed text-muted">
+        The verification lasts 10 minutes. After it, we&apos;ll take you straight to the password form.
+      </p>
+    </form>
+  );
+}
+
 /* ------------------------------ Delete account ------------------------------ */
 
 /**
@@ -176,10 +227,19 @@ export function DeleteAccountForm() {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [pending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const submit = () => {
     startTransition(async () => {
-      await deleteAccountAction();
+      try {
+        await deleteAccountAction();
+      } catch (error) {
+        // Successful deletions navigate via redirect(); only surface real errors.
+        const digest =
+          error && typeof error === "object" ? String((error as { digest?: unknown }).digest ?? "") : "";
+        if (digest.startsWith("NEXT_REDIRECT")) throw error;
+        toast(error instanceof Error ? error.message : "Could not delete your account. Contact support.", "error");
+      }
     });
   };
 

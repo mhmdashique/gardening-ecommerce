@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { ChevronDown, Loader2, ShieldAlert, Trash2 } from "lucide-react";
 import { deleteAccountAction } from "@/lib/actions/account";
 import { useToast } from "@/components/toast";
+import { premiumSurface } from "@/components/premium";
 import { Input } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ export function DeleteAccountSection() {
 
   return (
     <div className="sm:hidden">
-      <div className="overflow-hidden rounded-2xl border border-danger/25 bg-white shadow-card">
+      <div className={cn(premiumSurface, "overflow-hidden border-danger/25")}>
         <button
           type="button"
           onClick={() => {
@@ -44,16 +45,16 @@ export function DeleteAccountSection() {
             setOpen((v) => !v);
           }}
           aria-expanded={open}
-          className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-danger-soft/60"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-danger-soft/60"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-danger-soft text-danger">
-            <ShieldAlert className="h-4 w-4" strokeWidth={1.8} />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-danger-soft text-danger ring-1 ring-danger/15">
+            <ShieldAlert className="h-[18px] w-[18px]" strokeWidth={1.8} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-semibold text-forest-950">Delete Account</span>
-            <span className="block text-[10.5px] text-muted">Permanently remove all your data</span>
+            <span className="block text-[13.5px] font-semibold tracking-tight text-forest-950">Delete Account</span>
+            <span className="block text-[11px] text-muted">Permanently remove all your data</span>
           </span>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted transition-transform", open && "rotate-180")} />
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-forest-300 transition-transform", open && "rotate-180")} />
         </button>
 
         {open && (

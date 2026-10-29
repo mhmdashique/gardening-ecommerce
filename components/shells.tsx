@@ -110,7 +110,7 @@ function StoreSidebar({ pathname, onNavigate }: { pathname: string; onNavigate?:
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-forest-700 shadow-sm">
           <LifeBuoy className="h-4 w-4" />
         </span>
-        <p className="mt-3 font-display text-[15px] font-semibold text-forest-950">Need a little help?</p>
+        <p className="mt-3 font-sans text-[15px] font-semibold text-forest-950">Need a little help?</p>
         <p className="mt-1 text-[11.5px] leading-relaxed text-muted">Our plant doctors are one message away.</p>
         <Link href="/contact" className="mt-3 inline-flex items-center gap-1 text-[11.5px] font-semibold text-forest-800 hover:underline">
           Talk to us <ArrowRight className="h-3 w-3" />
@@ -318,12 +318,20 @@ export function AccountShell({
 
   return (
     <div className="min-h-screen bg-[#f6f9f5]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-white lg:flex">
-        <div className="px-5 pb-4 pt-6">
-          <Brand size="sm" withTagline={false} />
-          <p className="mt-1.5 text-[9px] font-medium uppercase tracking-[0.22em] text-muted/80">Customer dashboard</p>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col overflow-hidden bg-[#0d2b1e] text-white lg:flex">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[#2f7a56]/30 blur-3xl"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-[#c8a45a]/10 blur-3xl"
+        />
+        <div className="relative px-5 pb-4 pt-6">
+          <Brand theme="light" size="sm" withTagline={false} />
+          <p className="mt-1.5 text-[9px] font-medium uppercase tracking-[0.22em] text-white/40">Customer dashboard</p>
         </div>
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4" aria-label="Dashboard navigation">
+        <nav className="relative flex-1 space-y-4 overflow-y-auto px-3 pb-4" aria-label="Dashboard navigation">
           {[
             { label: "Activity", links: accountLinks.slice(0, 2) },
             {
@@ -335,7 +343,7 @@ export function AccountShell({
             },
           ].map((group) => (
             <div key={group.label}>
-              <p className="px-3 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-muted/60">{group.label}</p>
+              <p className="px-3 pb-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/35">{group.label}</p>
               <div className="space-y-0.5">
                 {group.links.map((link) => {
                   const Icon = link.icon;
@@ -346,18 +354,21 @@ export function AccountShell({
                       href={link.href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition",
+                        "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition ring-1",
                         active
-                          ? "bg-forest-900 text-white shadow-sm"
-                          : "text-forest-900/60 hover:bg-leaf-mint hover:text-forest-950",
+                          ? "bg-white text-forest-950 ring-transparent shadow-[0_16px_34px_-20px_rgba(0,0,0,0.65)]"
+                          : "text-white/55 ring-transparent hover:bg-white/[0.07] hover:text-white",
                       )}
                     >
                       <Icon
-                        className={cn("h-[17px] w-[17px] transition", active ? "text-white" : "text-forest-500")}
+                        className={cn(
+                          "h-[17px] w-[17px] transition",
+                          active ? "text-forest-800" : "text-white/40 group-hover:text-white/80",
+                        )}
                         strokeWidth={1.8}
                       />
                       <span className="flex-1 truncate">{link.label}</span>
-                      <span className={cn("h-1.5 w-1.5 rounded-full bg-amber", !active && "opacity-0")} aria-hidden />
+                      <span className={cn("h-1.5 w-1.5 rounded-full bg-[#d9b36a]", !active && "opacity-0")} aria-hidden />
                     </Link>
                   );
                 })}
@@ -365,29 +376,29 @@ export function AccountShell({
             </div>
           ))}
         </nav>
-        <div className="mx-4 mb-3 rounded-2xl border border-forest-100 bg-leaf-mint/70 p-4">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-forest-600 shadow-sm">
+        <div className="relative mx-4 mb-3 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-[#f0d9a8] ring-1 ring-white/10">
             <Leaf className="h-4 w-4" />
           </span>
-          <p className="mt-2.5 font-display text-[13.5px] font-semibold leading-snug text-forest-950">
+          <p className="mt-2.5 font-sans text-[13.5px] font-semibold leading-snug text-white">
             Every order plants a tree. Green choices for a better tomorrow.
           </p>
-          <p className="mt-1 text-[10.5px] leading-relaxed text-forest-900/60">
+          <p className="mt-1 text-[10.5px] leading-relaxed text-white/50">
             Thank you for growing with us — shop something leafy today.
           </p>
-          <Link href="/shop" className="mt-2.5 inline-flex items-center gap-1 text-[10.5px] font-semibold text-forest-800 hover:text-forest-950">
+          <Link href="/shop" className="mt-2.5 inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#f0d9a8] transition hover:text-white">
             Shop new arrivals <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
-        <div className="flex items-center gap-2.5 border-t border-line px-4 py-3.5">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-forest-900 text-[10px] font-bold text-white">
+        <div className="relative flex items-center gap-2.5 border-t border-white/10 px-4 py-3.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-[10px] font-bold text-white ring-1 ring-white/15">
             {initials(user.full_name)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12.5px] font-semibold text-forest-950">{user.full_name}</p>
-            <p className="truncate text-[10px] text-muted">{user.email}</p>
+            <p className="truncate text-[12.5px] font-semibold text-white">{user.full_name}</p>
+            <p className="truncate text-[10px] text-white/45">{user.email}</p>
           </div>
-          <LogoutSubmit />
+          <LogoutSubmit className="grid h-9 w-9 place-items-center rounded-xl text-rose-300 transition hover:bg-white/10 hover:text-rose-200" />
         </div>
       </aside>
 

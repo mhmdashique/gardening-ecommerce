@@ -403,7 +403,15 @@ export function CustomerTableWithDrawer({
                             <span className="flex items-center gap-1 text-muted">
                               <CreditCard className="h-3.5 w-3.5" />
                               {order.payment_method === "cod" ? "Cash on Delivery" : "Online Payment"}
-                              <span className="capitalize">({paymentStatusLabel(order.payment_status)})</span>
+                              <span
+                                className={
+                                  order.payment_status === "paid"
+                                    ? "font-semibold text-success-ink"
+                                    : "font-semibold text-amber-ink"
+                                }
+                              >
+                                ({paymentStatusLabel(order.payment_status)})
+                              </span>
                             </span>
                             <span className="font-bold text-forest-950 text-[12.5px]">
                               Total: {formatINR(order.total)}

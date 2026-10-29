@@ -99,7 +99,7 @@ export function GoogleButton() {
   );
 }
 
-export function LoginForm({ next, demoMode }: { next?: string; demoMode: boolean }) {
+export function LoginForm({ next, demoMode, initialError }: { next?: string; demoMode: boolean; initialError?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initial);
   const router = useRouter();
   const { toast } = useToast();
@@ -113,6 +113,7 @@ export function LoginForm({ next, demoMode }: { next?: string; demoMode: boolean
 
   return (
     <div className="space-y-5">
+      {!state.error && initialError && <Alert state={{ error: initialError }} />}
       <form action={formAction} className="space-y-4">
         <Alert state={state} />
         {next && <input type="hidden" name="next" value={next} />}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, CheckCircle2, Download, Package, Sprout, Truck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download, Eye, Package, Sprout, Truck } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getOrderForUser, getSettings, getSiteFeedbackForOrder } from "@/lib/catalog";
 import { buttonClasses, Badge } from "@/components/ui";
@@ -141,6 +141,22 @@ export default async function CheckoutSuccessPage({
                   Questions?
                 </Link>
               </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <a
+                  href={`/api/orders/${order.id}/invoice?preview=1`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-forest-700 underline underline-offset-2"
+                >
+                  <Eye className="h-3 w-3" /> Preview invoice
+                </a>
+                <a
+                  href={`/api/orders/${order.id}/invoice`}
+                  className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-forest-700 underline underline-offset-2"
+                >
+                  <Download className="h-3 w-3" /> Download
+                </a>
+              </div>
             </div>
           </div>
         </section>

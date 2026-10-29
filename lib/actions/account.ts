@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/demo-store";
 import { getCurrentUser, requireUser } from "@/lib/auth";
@@ -8,6 +9,7 @@ import { getSettings } from "@/lib/catalog";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { createAdminSupabase } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { PASSWORD_VERIFICATION_COOKIE, PASSWORD_VERIFICATION_MAX_AGE } from "@/lib/password-verification";
 import { addressSchema, contactSchema, feedbackSchema, profileSchema, returnSchema, reviewSchema } from "@/lib/validation";
 import { releaseDemoOrder } from "@/lib/orders";
 import type { ReturnRequest, Review, SiteFeedback } from "@/lib/types";
@@ -278,6 +280,33 @@ export async function updatePreferencesAction(_prev: FormState, formData: FormDa
   return { success: "Notification preferences saved." };
 }
 
+/* --------------------------- Password verification -------------------------- */
+
+/**
+ * Step 1 of the password change: confirm the email on the account.
+ * Sets a short-lived httpOnly cookie and sends the visitor to the form.
+ */
+export async function verifyPasswordEmailAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser("/account/profile/password");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+
+  if (!email) return { error: "Enter the email address on this account." };
+  if (email !== user.email.trim().toLowerCase()) {
+    return { error: "That email doesn't match the one on this account." };
+  }
+
+  const jar = await cookies();
+  jar.set(PASSWORD_VERIFICATION_COOKIE, user.id, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/account/profile/password",
+    maxAge: PASSWORD_VERIFICATION_MAX_AGE,
+  });
+
+  redirect("/account/profile/password/change");
+}
+
 export async function changePasswordAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser("/account/profile");
   const current = String(formData.get("current_password") || "");
@@ -302,6 +331,8 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
     if (db.passwords[user.email] !== current) return { error: "Your current password is incorrect." };
     db.passwords[user.email] = next;
   }
+  // Keep the verification cookie until it expires on its own — deleting it here
+  // would make the server re-render bounce straight back to the email step.
   return { success: "Password updated." };
 }
 

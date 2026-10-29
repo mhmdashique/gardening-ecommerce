@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Check, Circle, MapPin, Package, Truck, XCircle } from "lucide-react";
-import { PaymentStatusChip, StatusChip, buttonClasses } from "@/components/ui";
+import { Check, ChevronRight, Circle, MapPin, Truck, XCircle } from "lucide-react";
+import { PaymentStatusChip, StatusChip } from "@/components/ui";
+import { premiumSurface } from "@/components/premium";
 import { cn, formatDate, formatINR } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/lib/types";
 
@@ -127,66 +127,95 @@ export function TrackingSummary({ order }: { order: Order }) {
   );
 }
 
-export function OrderCard({ order }: { order: Order }) {
-  const itemCount = order.items.reduce((sum, item) => sum + item.qty, 0);
-  return (
-    <article className="card overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-leaf-mint/40 px-4 py-3 sm:px-5">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Order {order.order_number}</p>
-          <p className="mt-0.5 text-[11.5px] text-muted">
-            Placed {formatDate(order.created_at)} · {itemCount} item{itemCount === 1 ? "" : "s"} · {formatINR(order.total)}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusChip status={order.status} />
-          <PaymentStatusChip status={order.payment_status} />
-        </div>
-      </div>
-      <div className="p-4 sm:p-5">
-        <ul className="space-y-2.5">
-          {order.items.slice(0, 3).map((item) => (
-            <li key={item.id} className="flex items-center gap-3">
-              <span className="relative h-12 w-10 shrink-0 overflow-hidden rounded-lg bg-leaf-mint">
-                <Image
-                  src={item.image || "/images/plant-placeholder.svg"}
-                  alt=""
-                  fill
-                  sizes="40px"
-                  className="object-cover"
-                />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12.5px] font-semibold text-forest-950">{item.name}</span>
-                <span className="block text-[10.5px] text-muted">
-                  {item.size} · {item.pot_type} · Qty {item.qty}
-                </span>
-              </span>
-              <span className="text-[12px] font-semibold text-forest-900">{formatINR(item.price * item.qty)}</span>
-            </li>
-          ))}
-          {order.items.length > 3 && (
-            <li className="text-[11px] text-muted">+ {order.items.length - 3} more item(s)</li>
-          )}
-        </ul>
+const tableHeaders: { label: string; className: string }[] = [
+  { label: "Order no.", className: "" },
+  { label: "Name", className: "" },
+  { label: "Date & time", className: "" },
+  { label: "Delivery status", className: "" },
+  { label: "Payment status", className: "" },
+  { label: "Total", className: "text-right" },
+];
 
-        <div className="mt-4 border-t border-line pt-3.5">
-          <OrderProgress status={order.status} compact />
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <TrackingSummary order={order} />
-            <div className="flex flex-wrap gap-2">
-              <Link href={`/account/orders/${order.id}`} className={buttonClasses({ variant: "secondary", size: "sm" })}>
-                <Package className="h-3.5 w-3.5" /> View order
-              </Link>
-              {(order.status === "shipped" || order.status === "delivered") && (
-                <Link href={`/account/orders/${order.id}/track`} className={buttonClasses({ variant: "ghost", size: "sm" })}>
-                  <Truck className="h-3.5 w-3.5" /> Track
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
+export function OrderTable({ orders }: { orders: Order[] }) {
+  return (
+    <section className={cn(premiumSurface, "overflow-hidden")} aria-label="Order history">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[860px] border-collapse text-left">
+          <caption className="sr-only">Your orders with delivery and payment status</caption>
+          <thead>
+            <tr className="border-b border-line/70 bg-forest-50/50">
+              {tableHeaders.map((header) => (
+                <th
+                  key={header.label}
+                  scope="col"
+                  className={cn(
+                    "whitespace-nowrap px-4 py-3.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-muted sm:px-5",
+                    header.className,
+                  )}
+                >
+                  {header.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => {
+              const first = order.items[0];
+              const extraItems = order.items.length - 1;
+              return (
+                <tr
+                  key={order.id}
+                  className="relative border-b border-line/60 transition last:border-0 hover:bg-leaf-mint/25"
+                >
+                  <td className="px-4 py-4 align-middle sm:px-5">
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className="group block after:absolute after:inset-0 after:z-0"
+                      aria-label={`View order ${order.order_number}`}
+                    >
+                      <span className="block font-mono text-[12.5px] font-semibold tracking-tight text-forest-950">
+                        {order.order_number}
+                      </span>
+                      <span className="mt-0.5 block text-[10.5px] tabular-nums text-muted">
+                        {order.items.reduce((sum, item) => sum + item.qty, 0)} item
+                        {order.items.reduce((sum, item) => sum + item.qty, 0) === 1 ? "" : "s"}
+                      </span>
+                    </Link>
+                  </td>
+                  <td className="max-w-[230px] px-4 py-4 align-middle sm:px-5">
+                    <span className="block truncate text-[12.5px] font-semibold tracking-tight text-forest-950">
+                      {first?.name ?? "Order"}
+                    </span>
+                    {extraItems > 0 && (
+                      <span className="mt-0.5 block text-[10.5px] text-muted">+{extraItems} more item{extraItems === 1 ? "" : "s"}</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 align-middle sm:px-5">
+                    <span className="block text-[12.5px] font-semibold text-forest-950">{formatDate(order.created_at)}</span>
+                    <span className="mt-0.5 block text-[10.5px] tabular-nums text-muted">
+                      {formatDate(order.created_at, { hour: "2-digit", minute: "2-digit", hour12: true })}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 align-middle sm:px-5">
+                    <StatusChip status={order.status} />
+                  </td>
+                  <td className="px-4 py-4 align-middle sm:px-5">
+                    <PaymentStatusChip status={order.payment_status} />
+                  </td>
+                  <td className="px-4 py-4 text-right align-middle sm:px-5">
+                    <span className="block text-[13px] font-bold tabular-nums tracking-tight text-forest-950">
+                      {formatINR(order.total)}
+                    </span>
+                    <span className="relative z-10 mt-1 inline-flex items-center gap-0.5 text-[11px] font-semibold text-forest-700 transition group-hover:text-forest-950">
+                      View order <ChevronRight className="h-3 w-3 text-forest-300" aria-hidden />
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </article>
+    </section>
   );
 }

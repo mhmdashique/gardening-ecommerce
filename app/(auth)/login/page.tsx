@@ -15,6 +15,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const nextParam = Array.isArray(params.next) ? params.next[0] : params.next;
+  const errorParam = Array.isArray(params.error) ? params.error[0] : params.error;
   const user = await getCurrentUser();
   if (user) redirect(user.role === "admin" ? "/admin" : safeNextPath(nextParam, "/account"));
 
@@ -29,7 +30,7 @@ export default async function LoginPage({
           Log in to see your orders, saved plants and care reminders.
         </p>
       </div>
-      <LoginForm next={next} demoMode={!isSupabaseConfigured()} />
+      <LoginForm next={next} demoMode={!isSupabaseConfigured()} initialError={errorParam} />
       <p className="mt-6 text-center text-[12.5px] text-muted">
         New to Leaf &amp; Pot?{" "}
         <Link href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="font-semibold text-forest-800 hover:underline">

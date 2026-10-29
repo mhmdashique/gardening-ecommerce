@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CreditCard,
   Download,
+  Eye,
   MapPin,
   Package,
   ReceiptText,
@@ -49,7 +50,15 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
             <span className="flex items-center gap-1">
               <CalendarDays className="h-3.5 w-3.5" /> Placed {formatDateTime(order.created_at)}
             </span>
-            <span className="flex items-center gap-1">
+            <span
+              className={
+                online
+                  ? `flex items-center gap-1 font-semibold ${
+                      order.payment_status === "paid" ? "text-success-ink" : "text-amber-ink"
+                    }`
+                  : "flex items-center gap-1"
+              }
+            >
               <CreditCard className="h-3.5 w-3.5" />{" "}
               {online ? `Online · ${paymentStatusLabel(order.payment_status)}` : "Cash on delivery"}
             </span>
@@ -169,14 +178,22 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
             <div className="mt-3">
               <OrderTotals order={order} />
             </div>
-            <div className="mt-3 border-t border-line pt-3">
+            <div className="mt-3 space-y-2 border-t border-line pt-3">
+              <a
+                href={`/api/orders/${order.id}/invoice?preview=1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClasses({ size: "sm", className: "w-full" })}
+              >
+                <Eye className="h-3.5 w-3.5" /> Preview invoice
+              </a>
               <a
                 href={`/api/orders/${order.id}/invoice`}
                 className={buttonClasses({ variant: "secondary", size: "sm", className: "w-full" })}
               >
                 <Download className="h-3.5 w-3.5" /> Download invoice
               </a>
-              <p className="mt-2 text-[10px] text-muted">
+              <p className="mt-1 text-[10px] text-muted">
                 Invoice {order.invoice_number ?? `INV-${order.order_number}`} · GSTIN {settings.gst_number}
               </p>
             </div>
@@ -198,9 +215,11 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
                 <dt className="text-muted">Method</dt>
                 <dd className="font-medium text-forest-900">{online ? "Online (Cashfree)" : "Cash on delivery"}</dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex items-center justify-between">
                 <dt className="text-muted">Status</dt>
-                <dd className="font-medium capitalize text-forest-900">{paymentStatusLabel(order.payment_status)}</dd>
+                <dd>
+                  <PaymentStatusChip status={order.payment_status} dot={false} />
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">Amount</dt>
