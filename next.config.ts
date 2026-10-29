@@ -13,10 +13,10 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   compress: true,
+  serverExternalPackages: ["@supabase/server", "@supabase/ssr"],
   experimental: {
     serverActions: { bodySizeLimit: "12mb" },
     optimizeCss: true,
-    serverComponentsExternalPackages: ["@supabase/server", "@supabase/ssr"],
   },
   output: "standalone",
   async headers() {
