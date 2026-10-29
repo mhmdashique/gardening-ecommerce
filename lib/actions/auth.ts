@@ -269,7 +269,7 @@ export async function resetPasswordAction(_prev: AuthState, formData: FormData):
   redirect("/account?password=updated");
 }
 
-export async function googleLoginAction() {
+export async function googleLoginAction(): Promise<{ url?: string; error?: string }> {
   if (!isSupabaseConfigured()) {
     return { error: "Google sign-in needs Supabase. Use the demo credentials below to explore." };
   }
@@ -281,7 +281,7 @@ export async function googleLoginAction() {
     },
   });
   if (error || !data.url) return { error: error?.message ?? "Could not start Google sign-in." };
-  redirect(data.url);
+  return { url: data.url };
 }
 
 export async function sendPhoneOtpAction(_prev: AuthState, formData: FormData): Promise<AuthState> {

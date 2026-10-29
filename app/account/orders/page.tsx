@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { getOrdersForUser } from "@/lib/catalog";
 import { OrderTable } from "@/components/order-views";
 import { EmptyState, PaymentStatusChip, StatusChip, buttonClasses } from "@/components/ui";
-import { cn, formatDate, formatINR } from "@/lib/utils";
+import { cn, formatDate, formatINR, formatNumber } from "@/lib/utils";
 import type { Order } from "@/lib/types";
 
 export const metadata: Metadata = { title: "My Orders", robots: { index: false, follow: false } };
@@ -19,19 +19,6 @@ const tabs = [
   { key: "delivered", label: "Delivered" },
   { key: "cancelled", label: "Cancelled" },
 ];
-
-function HeroStat({ label, value }: { label: string; value: number }) {
-  return (
-    <span className="flex flex-col">
-      <span className="text-[19px] font-semibold leading-none tabular-nums tracking-tight text-forest-950">
-        {value}
-      </span>
-      <span className="mt-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted">
-        {label}
-      </span>
-    </span>
-  );
-}
 
 function MobileOrderCard({ order }: { order: Order }) {
   const first = order.items[0];

@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { getCategories, getSettings, getWishlistProducts } from "@/lib/catalog";
 import { CartProvider } from "@/components/cart-provider";
-import { MobileCartBar } from "@/components/cart-ui";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TabBar } from "@/components/mobile-tab-menu";
@@ -25,7 +24,6 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
       </main>
       <SiteFooter />
       <TabBar />
-      <MobileCartBar />
       <HelpChat firstName={user?.full_name?.split(" ")[0]} />
     </CartProvider>
   );

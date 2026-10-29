@@ -79,7 +79,13 @@ export function GoogleButton() {
       onClick={() =>
         start(async () => {
           const result = await googleLoginAction();
-          if (result?.error) toast(result.error, "info");
+          if (result?.error) {
+            toast(result.error, "info");
+            return;
+          }
+          if (result?.url) {
+            window.location.href = result.url;
+          }
         })
       }
       className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-line bg-white text-sm font-semibold text-forest-900 transition hover:bg-leaf-mint disabled:opacity-60"

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowRight,
   ChevronRight,
@@ -12,13 +12,13 @@ import {
   MapPin,
   Package,
   Search,
-  ShoppingCart,
   ShieldCheck,
   Sparkles,
-  Sprout,
   Star,
+  Sprout,
   User as UserIcon,
   Wallet,
+  ShoppingCart,
 } from "lucide-react";
 import { isAdmin, requireUser } from "@/lib/auth";
 import {
@@ -32,7 +32,6 @@ import {
   getWishlistProducts,
 } from "@/lib/catalog";
 import { OrderProgress } from "@/components/order-views";
-import { CardLabel, PremiumHero, StatTile, premiumSurface } from "@/components/premium";
 import { MobileLogoutButton, MobileMenuGroup } from "@/components/mobile-menu";
 import { ProductCard } from "@/components/product-card";
 import { SafeImage } from "@/components/safe-image";
@@ -58,11 +57,7 @@ const accountMenu = [
   { href: "/about", icon: Info, label: "About Leaf & Pot", sub: "Who we are" },
 ];
 
-/** Shared premium surface: soft border, layered shadow, large radius. */
-const surface = premiumSurface;
-
 export default async function AccountDashboardPage() {
-  // Prevent admin users from accessing user dashboard
   const user = await requireUser("/account");
   if (await isAdmin()) {
     redirect("/admin");
@@ -106,16 +101,15 @@ export default async function AccountDashboardPage() {
     { label: "Total spent", value: formatINR(totalSpent), icon: Wallet, tone: "bg-sky-soft text-sky-ink" },
   ];
 
-  // The seeded dashboard promo points at /care-guide which has no route; land on the care section instead.
   const promoCtaHref =
     promo && (!promo.cta_url || promo.cta_url.startsWith("/care-guide")) ? "/about#care" : promo?.cta_url ?? "/about#care";
 
   return (
-    <div className="space-y-4 sm:space-y-7">
+    <div className="space-y-5">
       {/* Search (tablet & desktop) */}
       <form
         action="/shop"
-        className="group hidden h-12 items-center gap-3 rounded-2xl border border-line/80 bg-white px-4 shadow-[0_1px_2px_rgba(18,56,42,0.04),0_16px_36px_-30px_rgba(18,56,42,0.55)] transition focus-within:border-forest-300 focus-within:ring-4 focus-within:ring-forest-100/70 sm:flex"
+        className="hidden h-12 items-center gap-3 rounded-2xl border border-line/80 bg-white px-4 shadow-[0_1px_2px_rgba(18,56,42,0.04),0_16px_36px_-30px_rgba(18,56,42,0.55)] transition focus-within:border-forest-300 focus-within:ring-4 focus-within:ring-forest-100/70 sm:flex"
       >
         <Search className="h-4 w-4 shrink-0 text-forest-400" />
         <input
@@ -133,65 +127,66 @@ export default async function AccountDashboardPage() {
       {/* ───────────────────────────── Phone ───────────────────────────── */}
       <div className="space-y-3.5 sm:hidden">
         {/* Profile hero */}
-        <PremiumHero
-          eyebrow={
-            <>
-              <Leaf className="h-3 w-3" aria-hidden /> Your green space
-            </>
-          }
-          avatar={
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white text-[14px] font-bold tracking-tight text-forest-900">
-              {initials(user.full_name)}
-            </span>
-          }
-          title={<span className="block truncate">{user.full_name}</span>}
-          description={
-            <span className="flex flex-col gap-0.5">
-              <span className="flex items-center gap-1 truncate">
+        <section className="card overflow-hidden">
+          <div className="px-4 py-5 sm:px-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white text-[14px] font-bold tracking-tight text-forest-900">
+                {initials(user.full_name)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-semibold text-forest-950">{user.full_name}</span>
+                <span className="mt-0.5 block text-[11px] text-muted">{user.email}</span>
+                {user.phone && <span className="mt-0.5 block text-[11px] text-muted">{user.phone}</span>}
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-muted/70">
+              <span className="inline-flex items-center gap-1">
                 <Mail className="h-3 w-3 shrink-0" aria-hidden /> {user.email}
               </span>
-              {user.phone && <span className="truncate text-white/45">{user.phone}</span>}
-            </span>
-          }
-          compact
-        >
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.08] px-2.5 py-1 text-[10px] font-semibold text-white/85 ring-1 ring-white/10">
-              <ShieldCheck className="h-3 w-3" aria-hidden />
-              {user.role === "admin" ? "Admin" : "Verified customer"}
-            </span>
-            {settings.loyalty_enabled && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#d9b36a]/15 px-2.5 py-1 text-[10px] font-semibold text-[#f0d9a8] ring-1 ring-[#d9b36a]/20">
-                <Sparkles className="h-3 w-3" aria-hidden />
-                {formatNumber(user.loyalty_points)} points
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.08] px-2.5 py-1 text-[10px] font-semibold text-white/85 ring-1 ring-white/10">
+                <ShieldCheck className="h-3 w-3" aria-hidden />
+                {user.role === "admin" ? "Admin" : "Verified customer"}
               </span>
-            )}
-            {user.created_at && <span className="text-[10px] text-white/45">Since {formatDate(user.created_at)}</span>}
+              {settings.loyalty_enabled && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#d9b36a]/15 px-2.5 py-1 text-[10px] font-semibold text-[#f0d9a8] ring-1 ring-[#d9b36a]/20">
+                  <Sparkles className="h-3 w-3" aria-hidden />
+                  {formatNumber(user.loyalty_points)} points
+                </span>
+              )}
+              {user.created_at && <span className="text-[10px] text-white/45">Since {formatDate(user.created_at)}</span>}
+            </div>
           </div>
-        </PremiumHero>
+        </section>
 
         {/* Overview tiles */}
-        <section className="grid grid-cols-3 gap-2.5">
-          {phoneStats.map((stat) => (
-            <StatTile
-              key={stat.label}
-              icon={stat.icon}
-              label={stat.label}
-              value={stat.value}
-              tone={stat.tone}
-            />
-          ))}
+        <section className="card overflow-hidden">
+          <div className="border-b border-line px-4 py-3 sm:px-5">
+            <h2 className="font-display text-lg font-semibold text-forest-950">Overview</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5 px-4 sm:px-5 py-4">
+            {phoneStats.map((stat) => (
+              <div key={stat.label} className="card p-3">
+                <div className={cn("grid h-9 w-9 place-items-center rounded-xl", stat.tone)}>
+                  <stat.icon className="h-4 w-4" strokeWidth={1.8} />
+                </div>
+                <p className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{stat.label}</p>
+                <p className="mt-1 text-[13px] font-semibold text-forest-950">{stat.value}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Account menu */}
         <MobileMenuGroup rows={accountMenu.slice(0, 5)} />
         <MobileMenuGroup rows={accountMenu.slice(5)} />
 
-        <MobileLogoutButton />
+        <section className="card p-4 sm:p-5 pb-2">
+          <MobileLogoutButton />
+        </section>
       </div>
 
       {/* ──────────────────────────── Desktop ──────────────────────────── */}
-      <div className="hidden space-y-5 sm:block sm:space-y-7">
+      <div className="hidden space-y-5 sm:block">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-[28px] bg-[#0d2b1e] px-6 py-7 text-white ring-1 ring-white/10 shadow-[0_30px_70px_-40px_rgba(13,43,30,0.9)] sm:px-8 sm:py-8">
           <span
@@ -244,21 +239,11 @@ export default async function AccountDashboardPage() {
         {/* Stats */}
         <section className="grid grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className={cn(
-                surface,
-                "group relative overflow-hidden p-4 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(18,56,42,0.04),0_28px_56px_-32px_rgba(18,56,42,0.5)]",
-              )}
-            >
-              <span
-                aria-hidden
-                className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-forest-300/60 to-transparent opacity-0 transition group-hover:opacity-100"
-              />
-              <span className={cn("grid h-10 w-10 place-items-center rounded-2xl", stat.tone)}>
+            <div key={stat.label} className="card p-4">
+              <div className={cn("grid h-10 w-10 place-items-center rounded-2xl", stat.tone)}>
                 <stat.icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              </span>
-              <CardLabel>{stat.label}</CardLabel>
+              </div>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{stat.label}</p>
               <p className="mt-1 text-[24px] font-semibold leading-none tracking-tight tabular-nums text-forest-950">
                 {stat.value}
               </p>
@@ -268,10 +253,10 @@ export default async function AccountDashboardPage() {
 
         {/* Active order tracker */}
         {activeOrder && (
-          <section className={cn(surface, "p-5 sm:p-6")}>
+          <section className="card p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <CardLabel>Latest order</CardLabel>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Latest order</p>
                 <h2 className="mt-1 font-mono text-[17px] font-semibold tracking-tight text-forest-950">
                   {activeOrder.order_number}
                 </h2>
@@ -306,10 +291,10 @@ export default async function AccountDashboardPage() {
         )}
 
         {/* Recent orders */}
-        <section className={cn(surface, "overflow-hidden")}>
-          <div className="flex items-center justify-between border-b border-line/70 px-5 py-4 sm:px-6">
+        <section className="card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3 sm:px-5">
             <div>
-              <CardLabel>Activity</CardLabel>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Activity</p>
               <h2 className="mt-0.5 text-[16px] font-semibold tracking-tight text-forest-950">Recent Orders</h2>
             </div>
             {orders.length > 0 && (
@@ -322,7 +307,7 @@ export default async function AccountDashboardPage() {
             )}
           </div>
           {orders.length === 0 ? (
-            <div className="px-5 py-10 text-center">
+            <div className="px-4 py-10 sm:px-5 text-center">
               <span className="mx-auto grid h-11 w-11 place-items-center rounded-2xl bg-forest-50 text-forest-400">
                 <Package className="h-5 w-5" />
               </span>
@@ -337,7 +322,7 @@ export default async function AccountDashboardPage() {
                   <li key={order.id}>
                     <Link
                       href={`/account/orders/${order.id}`}
-                      className="group flex items-center gap-3 px-5 py-3.5 transition hover:bg-leaf-mint/40 sm:px-6"
+                      className="group flex items-center gap-3 px-4 py-3.5 sm:px-5 transition hover:bg-[#f7faf7]"
                     >
                       <span className="relative h-10 w-9 shrink-0 overflow-hidden rounded-xl bg-leaf-mint ring-1 ring-line/60">
                         <SafeImage
@@ -400,7 +385,7 @@ export default async function AccountDashboardPage() {
 
         {/* Wishlist + quick actions */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <section className={cn(surface, "flex flex-col p-4 sm:p-5")}>
+          <section className="card flex flex-col p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[14px] font-semibold tracking-tight text-forest-950">Wishlist</h2>
               <Link
@@ -452,7 +437,7 @@ export default async function AccountDashboardPage() {
             )}
           </section>
 
-          <section className={cn(surface, "flex flex-col p-4 sm:p-5")}>
+          <section className="card flex flex-col p-4 sm:p-5">
             <h2 className="text-[14px] font-semibold tracking-tight text-forest-950">Quick Actions</h2>
             <ul className="mt-3 flex-1 space-y-2">
               {quickActions.map((action) => (
@@ -481,7 +466,7 @@ export default async function AccountDashboardPage() {
         <section>
           <div className="mb-3.5 flex items-end justify-between gap-3">
             <div>
-              <CardLabel>Live from our botanical nursery</CardLabel>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">Live from our botanical nursery</p>
               <h2 className="mt-1 text-[20px] font-semibold tracking-tight text-forest-950">Recommended Live Plants</h2>
             </div>
             <Link
@@ -500,10 +485,10 @@ export default async function AccountDashboardPage() {
 
         {/* Promo */}
         {promo && (
-          <section className={cn(surface, "overflow-hidden")}>
+          <section className="card overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-stretch">
               <div className="flex-1 p-5 sm:p-7">
-                <CardLabel>{promo.eyebrow ?? "Special offer"}</CardLabel>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{promo.eyebrow ?? "Special offer"}</p>
                 <h2 className="mt-1.5 max-w-lg text-[21px] font-semibold leading-tight tracking-tight text-forest-950 sm:text-[24px]">
                   {promo.title}
                 </h2>
@@ -537,7 +522,7 @@ export default async function AccountDashboardPage() {
             )}
           >
             {recentlyViewed.length > 0 && (
-              <section className={cn(surface, "p-5 sm:p-6")}>
+              <section className="card p-5 sm:p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-semibold tracking-tight text-forest-950">Recently viewed</h2>
                   <Link href="/shop" className="text-[11px] font-semibold text-forest-700 transition hover:text-forest-900">
@@ -573,7 +558,7 @@ export default async function AccountDashboardPage() {
             )}
 
             {settings.loyalty_enabled && latestTransactions.length > 0 && (
-              <section className={cn(surface, "p-5 sm:p-6")}>
+              <section className="card p-5 sm:p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-semibold tracking-tight text-forest-950">Points activity</h2>
                   <Link
@@ -631,7 +616,7 @@ export default async function AccountDashboardPage() {
             </Link>
           </div>
 
-          <div className={cn(surface, "p-5 sm:p-6")}>
+          <div className="card p-5 sm:p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold tracking-tight text-forest-950">Shop by room</h2>
               <Link href="/shop" className="text-[11px] font-semibold text-forest-700 transition hover:text-forest-900">

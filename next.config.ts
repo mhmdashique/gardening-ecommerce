@@ -9,11 +9,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 31,
   },
   poweredByHeader: false,
+  compress: true,
   experimental: {
     serverActions: { bodySizeLimit: "12mb" },
+    optimizeCss: true,
+    serverComponentsExternalPackages: ["@supabase/server", "@supabase/ssr"],
   },
+  output: "standalone",
   async headers() {
     return [
       {
@@ -23,6 +28,19 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      {
+        source: "/images/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
     ];

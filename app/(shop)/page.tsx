@@ -8,7 +8,6 @@ import {
   Home,
   Leaf,
   ShieldCheck,
-  Sparkles,
   Sprout,
   Store,
   Trees,
@@ -19,7 +18,6 @@ import {
   getAllProducts,
   getBanners,
   getBestSellers,
-  getSettings,
   getWishlistProducts,
 } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
@@ -27,8 +25,7 @@ import { WatchVideoButton } from "@/components/hero-video";
 import { SafeImage } from "@/components/safe-image";
 import { SectionHeading, buttonClasses } from "@/components/ui";
 import { OnboardingGate } from "@/components/onboarding-gate";
-import { formatINR } from "@/lib/utils";
-import type { Product, SiteSettings } from "@/lib/types";
+import type { Product } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: { absolute: "Leaf & Pot | Live Plants for Landscaping, Gardening, Homes & Offices" },
@@ -39,12 +36,10 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const user = await getCurrentUser();
-  const [heroBanners, offerBanners, allProducts, bestSellers, settings] = await Promise.all([
+  const [heroBanners, allProducts, bestSellers] = await Promise.all([
     getBanners("hero"),
-    getBanners("offer"),
     getAllProducts(),
     getBestSellers(8),
-    getSettings(),
   ]);
 
   const wishlist = user ? await getWishlistProducts(user.id) : [];
@@ -53,51 +48,13 @@ export default async function HomePage() {
   return (
     <OnboardingGate>
       <LandingHome
-      hero={heroBanners[0] ?? null}
-      offer={offerBanners[0] ?? null}
-      allProducts={allProducts}
-      bestSellers={bestSellers}
-      settings={settings}
-      wishlistIds={wishlistIds}
-      loggedIn={Boolean(user)}
-    />
+        hero={heroBanners[0] ?? null}
+        allProducts={allProducts}
+        bestSellers={bestSellers}
+        wishlistIds={wishlistIds}
+        loggedIn={Boolean(user)}
+      />
     </OnboardingGate>
-  );
-}
-
-function TrustStrip({ settings }: { settings: SiteSettings }) {
-  return (
-    <div className="border-b border-line bg-white/90">
-      <div className="container-shell grid sm:grid-cols-3">
-        {[
-          {
-            icon: Truck,
-            title: "Free Shipping",
-            copy: `On all orders over ${formatINR(settings.free_shipping_threshold)}`,
-          },
-          {
-            icon: Boxes,
-            title: "Wholesale & Retail",
-            copy: "Supplying landscaping, homes, shops & offices",
-          },
-        ].map((item, index) => (
-          <div
-            key={item.title}
-            className={`flex items-center gap-2.5 py-2 sm:py-2.5 ${
-              index > 0 ? "border-t border-line sm:border-l sm:border-t-0 sm:pl-5" : ""
-            }`}
-          >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-leaf-mint text-forest-700">
-              <item.icon className="h-3.5 w-3.5" strokeWidth={1.8} />
-            </span>
-            <div>
-              <p className="text-[11.5px] font-semibold text-forest-950">{item.title}</p>
-              <p className="text-[10px] leading-tight text-muted">{item.copy}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -213,33 +170,6 @@ function AboutCompanySection() {
         </div>
 
         {/* Guarantees & Returns Banner */}
-        {/* <div className="mt-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="flex items-start gap-3 sm:border-l sm:border-line sm:pl-6">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-soft text-amber-ink">
-                <AlertCircle className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[13px] font-semibold text-forest-950">No Return Available Policy</p>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-muted">
-                  Because living plants are perishable biological organisms, once delivered safely they cannot be returned or refunded for change of mind.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 sm:border-l sm:border-line sm:pl-6">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-leaf-mint text-forest-800">
-                <Leaf className="h-5 w-5" strokeWidth={1.8} />
-              </span>
-              <div>
-                <p className="text-[13px] font-semibold text-forest-950">Fresh from Nursery</p>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-muted">
-                  All plants are sourced directly from nurseries and carefully packed for safe delivery.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div> */}
-
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line/70 pt-6">
           <p className="text-[12px] font-medium text-forest-900">
             Need plants for your home, landscape project, shop, or corporate office?
@@ -266,18 +196,14 @@ function AboutCompanySection() {
 
 function LandingHome({
   hero,
-  offer,
   allProducts,
   bestSellers,
-  settings,
   wishlistIds = new Set<string>(),
   loggedIn = false,
 }: {
   hero: import("@/lib/types").Banner | null;
-  offer: import("@/lib/types").Banner | null;
   allProducts: Product[];
   bestSellers: Product[];
-  settings: SiteSettings;
   wishlistIds?: Set<string>;
   loggedIn?: boolean;
 }) {
@@ -341,11 +267,6 @@ function LandingHome({
             </div>
           </div>
         </div>
-
-        {/* Anchored Bottom Trust Strip */}
-        <div className="relative z-10 w-full">
-          <TrustStrip settings={settings} />
-        </div>
       </section>
 
       {/* ALL PLANTS SECTION (Revealed as user scrolls down) */}
@@ -388,44 +309,6 @@ function LandingHome({
 
       {/* About Company Section */}
       <AboutCompanySection />
-
-      {offer && (
-        <section className="container-shell mt-12 sm:mt-16">
-          <div className="relative overflow-hidden rounded-2xl bg-forest-900 text-white shadow-card">
-            <div className="absolute inset-0 bg-grain opacity-20" aria-hidden />
-            <div className="grid items-center gap-6 sm:grid-cols-[1.1fr_0.9fr]">
-              <div className="relative p-5 sm:p-8 lg:p-10">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-forest-100">
-                  <Sparkles className="h-3 w-3" /> {offer.eyebrow ?? "New here?"}
-                </span>
-                <h2 className="display-title mt-3 max-w-md text-balance text-[24px] font-semibold leading-[1.1] sm:text-[32px]">
-                  {offer.title}
-                </h2>
-                {offer.subtitle && (
-                  <p className="mt-2.5 max-w-md text-pretty text-[12.5px] leading-relaxed text-white/65 sm:text-[13px]">
-                    {offer.subtitle}
-                  </p>
-                )}
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link href={offer.cta_url ?? "/shop"} className={buttonClasses({ variant: "amber", size: "sm", className: "h-8.5 px-4 text-xs font-semibold" })}>
-                    {offer.cta_label ?? "Shop Now"} <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                  <span className="text-[10.5px] text-white/50">Applied automatically at checkout</span>
-                </div>
-              </div>
-              <div className="relative h-full min-h-[190px] sm:min-h-[240px]">
-                <SafeImage
-                  src={offer.image_url ?? "/images/plant-placeholder.svg"}
-                  alt=""
-                  sizes="(max-width: 640px) 100vw, 500px"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-forest-900 via-forest-900/20 to-transparent" />
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {bestSellers.length > 0 && (
         <section className="container-shell mt-10 sm:mt-12">
